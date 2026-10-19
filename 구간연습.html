@@ -4,120 +4,284 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>구간 연습 플레이어</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
   :root {
-    --bg: #f6f7f9; --panel: #fff; --text: #1d2330; --muted: #6b7280; --line: #e3e6eb;
-    --accent: #3b6ef5; --accent-soft: rgba(59,110,245,.18); --wave: #b8c2d6; --played: #3b6ef5; --danger: #d9534f;
+    --bg: #f4f5fa; --panel: #ffffff; --soft: #eff0f6; --soft-2: #e2e4ee; --text: #1b1f2e; --muted: #6a7184; --faint: #a6abbb; --line: #e7e9f1;
+    --accent: #5a55e0; --accent-hover: #4b46cf; --accent-soft: rgba(90,85,224,.11); --accent-glow: rgba(90,85,224,.28); --on-accent: #fff;
+    --wave: #c9cddb; --played: #5a55e0; --danger: #d64545;
+    --shadow: 0 1px 2px rgba(20,24,50,.04), 0 8px 28px rgba(20,24,50,.06);
+    color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #14171d; --panel: #1d2129; --text: #e6e8ec; --muted: #9aa3b2; --line: #2c323d;
-      --accent: #6c93ff; --accent-soft: rgba(108,147,255,.22); --wave: #4a5366; --played: #6c93ff;
+      --bg: #0e1016; --panel: #161922; --soft: #1f232f; --soft-2: #2a2f3d; --text: #e9ebf2; --muted: #9aa0b3; --faint: #5b6175; --line: #242835;
+      --accent: #7470f0; --accent-hover: #8580f5; --accent-soft: rgba(116,112,240,.17); --accent-glow: rgba(116,112,240,.3); --on-accent: #fff;
+      --wave: #3a3f50; --played: #8d89f7; --danger: #ff6b6b;
+      --shadow: none;
+      color-scheme: dark;
     }
   }
+
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, "Malgun Gothic", sans-serif; }
-  main { max-width: 980px; margin: 0 auto; padding: 20px 16px 60px; }
-  h1 { font-size: 20px; margin: 0 0 12px; }
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 14px; }
-  #drop { border: 2px dashed var(--line); border-radius: 12px; padding: 22px; text-align: center; color: var(--muted); cursor: pointer; }
-  #drop.over { border-color: var(--accent); color: var(--accent); }
-  #fileName { font-weight: 600; margin-bottom: 8px; word-break: break-all; }
-  #waveWrap { position: relative; height: 140px; user-select: none; touch-action: none; cursor: crosshair; }
-  canvas { width: 100%; height: 100%; display: block; }
-  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
-  button { font: inherit; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--text); cursor: pointer; }
-  button:hover { border-color: var(--accent); }
-  button.on, button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-  input[type=text], input[type=number] { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--text); }
-  input[type=number] { width: 80px; }
-  .time { font-variant-numeric: tabular-nums; font-family: ui-monospace, Consolas, monospace; }
-  #clock { font-size: 18px; min-width: 150px; }
+  [hidden] { display: none !important; }
+  html, body { min-height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 "Pretendard Variable", Pretendard, system-ui, "Malgun Gothic", sans-serif; -webkit-font-smoothing: antialiased; }
+  main { margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 22px; margin: 0; letter-spacing: -.02em; }
+  h2 { font-size: 16px; margin: 0; letter-spacing: -.01em; }
+  .sub { color: var(--muted); font-size: 13px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; margin-bottom: 16px; box-shadow: var(--shadow); }
+  .phead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .grow { flex: 1; }
   .muted { color: var(--muted); font-size: 13px; }
-  table { width: 100%; border-collapse: collapse; }
-  td, th { padding: 6px 4px; border-bottom: 1px solid var(--line); text-align: left; }
-  th { font-weight: 600; color: var(--muted); font-size: 13px; }
-  tr.active td { background: var(--accent-soft); }
-  td input[type=text] { width: 100%; min-width: 80px; }
-  .x { color: var(--danger); }
-  kbd { font-family: ui-monospace, Consolas, monospace; font-size: 12px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; }
-  .keys { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 4px 16px; }
-  @media (max-width: 600px) { .hide-sm { display: none; } }
+  .time { font-variant-numeric: tabular-nums; }
+
+  /* 버튼 */
+  button { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 14px; border: 0; border-radius: 10px; background: var(--soft); color: var(--text);
+           cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap;
+           transition: background .15s, color .15s, box-shadow .15s, transform .1s; }
+  button:hover { background: var(--soft-2); }
+  button:active { transform: scale(.96); }
+  button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button.primary, button.on { background: var(--accent); color: var(--on-accent); }
+  button.primary:hover, button.on:hover { background: var(--accent-hover); }
+  button.small { padding: 5px 10px; font-size: 13px; border-radius: 8px; }
+  button.ghost { background: transparent; color: var(--muted); }
+  button.ghost:hover { background: var(--soft); color: var(--text); }
+  button.danger:hover { color: var(--danger); }
+  button.wide { width: 100%; padding: 11px 14px; }
+
+  /* 입력 */
+  input[type=text], input[type=number] { font: inherit; font-size: 14px; padding: 7px 10px; border: 1px solid transparent; border-radius: 10px; background: var(--soft); color: var(--text); transition: border-color .15s, background .15s; }
+  input[type=text]:focus, input[type=number]:focus { outline: none; border-color: var(--accent); background: var(--panel); }
+  input[type=number] { width: 64px; }
+  input[type=range] { accent-color: var(--accent); width: 110px; }
+  input::placeholder { color: var(--faint); }
+
+  /* 파형 */
+  #waveWrap { position: relative; user-select: none; touch-action: none; cursor: crosshair; border-radius: 12px; background: var(--soft); overflow: hidden; }
+  canvas { width: 100%; height: 100%; display: block; }
+  .hint { color: var(--faint); font-size: 12px; margin-top: 6px; text-align: center; }
+
+  /* 재생 컨트롤 */
+  .transport { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin-top: 12px; }
+  .clock { font-size: 16px; font-weight: 600; color: var(--muted); }
+  .tcenter { display: flex; align-items: center; gap: 12px; }
+  .tright { justify-self: end; }
+  .round { width: 44px; height: 44px; padding: 0; border-radius: 50%; }
+  .round svg { width: 20px; height: 20px; }
+  #playBtn { width: 64px; height: 64px; padding: 0; border-radius: 50%; background: var(--accent); color: var(--on-accent); box-shadow: 0 8px 24px var(--accent-glow); }
+  #playBtn:hover { background: var(--accent-hover); }
+  #playBtn svg { width: 28px; height: 28px; }
+  #playBtn .i-play { margin-left: 3px; }
+  #playBtn .i-pause, #playBtn.playing .i-play { display: none; }
+  #playBtn.playing .i-pause { display: block; }
+
+  /* 반복 스위치 */
+  button.switch, button.switch:hover, button.switch.on, button.switch.on:hover { background: transparent; color: var(--muted); padding: 6px 2px; gap: 10px; }
+  button.switch.on, button.switch.on:hover { color: var(--text); }
+  .switch::before { content: ''; flex: none; width: 40px; height: 24px; border-radius: 99px; background-color: var(--soft-2);
+                    background-image: radial-gradient(circle at 12px 50%, #fff 8px, transparent 8.6px); transition: background-color .2s; }
+  .switch.on::before { background-color: var(--accent); background-image: radial-gradient(circle at 28px 50%, #fff 8px, transparent 8.6px); }
+
+  /* 도구 줄 */
+  .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 22px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .group { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .label { font-size: 12px; font-weight: 700; color: var(--muted); margin-right: 2px; }
+  .abInput { width: 78px; text-align: center; }
+  .seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 10px; background: var(--soft); }
+  .seg button, .seg button:hover { background: transparent; color: var(--muted); padding: 4px 10px; font-size: 13px; border-radius: 8px; }
+  .seg button:hover { color: var(--text); }
+  .seg button.on, .seg button.on:hover { background: var(--panel); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.14); }
+  details.more { display: block; }
+  details.more summary { cursor: pointer; list-style: none; font-size: 13px; font-weight: 600; color: var(--muted); padding: 5px 10px; border-radius: 8px; }
+  details.more summary::-webkit-details-marker { display: none; }
+  details.more summary:hover, details.more[open] summary { background: var(--soft); color: var(--text); }
+  .moreBody { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 8px; font-size: 13px; color: var(--muted); }
+
+  /* 음량 */
+  button.volBtn { padding: 4px 6px; }
+  .volBtn svg { width: 18px; height: 18px; display: block; }
+  .volBtn .i-mute, .volBtn.muted .i-vol { display: none; }
+  .volBtn.muted .i-mute { display: block; }
+  .volBtn.muted { color: var(--danger); }
+  input#vol { width: 90px; }
+  #volLabel { min-width: 34px; }
+
+  /* 단축키 */
+  .keysPanel summary { cursor: pointer; list-style: none; font-weight: 600; color: var(--muted); }
+  .keysPanel summary::-webkit-details-marker { display: none; }
+  .keysPanel[open] summary { margin-bottom: 10px; }
+  .keys { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 6px 16px; color: var(--muted); font-size: 13px; }
+  kbd { font-family: inherit; font-size: 12px; font-weight: 600; color: var(--text); background: var(--soft); border-radius: 6px; padding: 1px 6px; box-shadow: inset 0 -1px 0 var(--soft-2); }
+
+  /* 목록 공통 (구간 / 파트) */
+  .acts { display: inline-flex; gap: 2px; }
+  @media (hover: hover) {
+    .item .acts { opacity: 0; transition: opacity .15s; }
+    .item:hover .acts, .item.active .acts, .item:focus-within .acts { opacity: 1; }
+  }
+  .addRow { display: flex; gap: 8px; margin-top: 12px; }
+  .addRow input { flex: 1; min-width: 0; }
+
+  @media (max-width: 600px) {
+    .hide-sm { display: none; }
+    .transport { grid-template-columns: 1fr auto; }
+    .tcenter { grid-column: 1 / -1; order: -1; justify-content: center; }
+    .tools { gap: 12px; }
+  }
+
+  main { max-width: 920px; }
+  .hero { display: flex; align-items: center; gap: 14px; margin: 4px 0 20px; }
+  .logo { flex: none; width: 48px; height: 48px; border-radius: 15px; display: grid; place-items: center; font-size: 24px; color: #fff;
+          background: linear-gradient(135deg, var(--accent), #9b6cf0); box-shadow: 0 8px 22px var(--accent-glow); }
+
+  #drop { text-align: center; padding: 44px 20px; cursor: pointer; border: 2px dashed var(--soft-2); box-shadow: none; transition: border-color .15s, background .15s; }
+  #drop:hover { border-color: var(--accent); }
+  body.over #drop, body.over #player { border-color: var(--accent); background: var(--accent-soft); }
+  body.over #player { border-style: dashed; }
+  .dropIcon { width: 56px; height: 56px; margin: 0 auto 12px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
+  .dropIcon svg { width: 26px; height: 26px; }
+  .dropTitle { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+
+  .fileRow { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .fileIcon { flex: none; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+  #fileName { flex: 1; font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #waveWrap { height: 140px; }
+
+  #secList { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+  .sec { display: flex; align-items: center; gap: 10px; padding: 7px 10px 7px 7px; border-radius: 12px; background: var(--soft); cursor: pointer; transition: background .15s, box-shadow .15s; }
+  .sec:hover { background: var(--soft-2); }
+  .sec.active { background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--accent); }
+  .secPlay { flex: none; width: 34px; height: 34px; padding: 0; border-radius: 50%; background: var(--panel); color: var(--accent); box-shadow: 0 0 0 1px var(--line); }
+  .secPlay svg { width: 15px; height: 15px; margin-left: 2px; }
+  .secPlay:hover { background: var(--accent); color: var(--on-accent); box-shadow: 0 4px 12px var(--accent-glow); }
+  .sec.active .secPlay { background: var(--accent); color: var(--on-accent); box-shadow: 0 4px 12px var(--accent-glow); }
+  .sec .num { flex: none; font-size: 12px; font-weight: 700; color: var(--muted); width: 10px; text-align: center; }
+  .sec input.nm { flex: 1; min-width: 60px; background: transparent; font-weight: 600; padding: 5px 8px; }
+  .sec input.nm:hover { background: var(--panel); }
+  .sec input.nm:focus { background: var(--panel); }
+  .sec .rng { font-size: 13px; }
+  .empty { margin-top: 12px; padding: 22px; text-align: center; border-radius: 12px; background: var(--soft); color: var(--muted); font-size: 13px; line-height: 1.7; }
+
+  .share { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .share > div:first-child { flex: 1 1 260px; }
+  .share b { font-size: 14px; }
+  .shareBtns { display: flex; flex-wrap: wrap; gap: 6px; }
 </style>
 </head>
 <body>
 <main>
-  <h1>🎵 구간 연습 플레이어</h1>
+  <header class="hero">
+    <div class="logo">♪</div>
+    <div>
+      <h1>구간 연습 플레이어</h1>
+      <div class="sub">음원을 열고, 어려운 부분만 골라 반복해서 연습하세요</div>
+    </div>
+  </header>
 
-  <div class="panel">
-    <div id="drop">여기에 음악 파일을 끌어다 놓거나 클릭해서 선택하세요 (m4a, mp3, wav 등)</div>
-    <input type="file" id="fileInput" accept="audio/*,.m4a" hidden>
+  <div id="drop" class="panel">
+    <div class="dropIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"/><path d="m6 10 6-6 6 6"/><path d="M4 20h16"/></svg></div>
+    <div class="dropTitle">음악 파일을 끌어다 놓거나 클릭해서 선택</div>
+    <div class="muted">m4a · mp3 · wav 등 · 파일은 내 컴퓨터 안에서만 재생돼요</div>
   </div>
+  <input type="file" id="fileInput" accept="audio/*,.m4a" hidden>
 
-  <div class="panel" id="player" hidden>
-    <div id="fileName"></div>
+  <section class="panel" id="player" hidden>
+    <div class="fileRow">
+      <span class="fileIcon">♪</span>
+      <div id="fileName"></div>
+      <button id="changeFile" class="small">다른 파일</button>
+    </div>
     <div id="waveWrap"><canvas id="wave"></canvas></div>
-    <div class="muted">파형을 클릭하면 이동, 드래그하면 구간 선택</div>
-
-    <div class="row">
-      <button id="playBtn" class="primary">▶ 재생</button>
-      <span id="clock" class="time">0:00.0 / 0:00.0</span>
-      <button id="loopBtn" class="on">🔁 구간 반복 켜짐</button>
+    <div class="hint">파형을 클릭하면 이동 · 드래그하면 반복 구간 선택</div>
+    <div class="transport">
+      <div id="clock" class="clock time">0:00.0 / 0:00.0</div>
+      <div class="tcenter">
+        <button id="back5" class="round" title="5초 뒤로" aria-label="5초 뒤로"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11 6.5v11a.8.8 0 0 1-1.25.66L2.6 12.66a.8.8 0 0 1 0-1.32l7.15-5.5A.8.8 0 0 1 11 6.5zm10 0v11a.8.8 0 0 1-1.25.66l-7.15-5.5a.8.8 0 0 1 0-1.32l7.15-5.5A.8.8 0 0 1 21 6.5z"/></svg></button>
+        <button id="playBtn" title="재생 / 일시정지 (Space)" aria-label="재생"><svg class="i-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg><svg class="i-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4.5" height="14" rx="1.2"/><rect x="13.5" y="5" width="4.5" height="14" rx="1.2"/></svg></button>
+        <button id="fwd5" class="round" title="5초 앞으로" aria-label="5초 앞으로"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g transform="matrix(-1 0 0 1 24 0)"><path d="M11 6.5v11a.8.8 0 0 1-1.25.66L2.6 12.66a.8.8 0 0 1 0-1.32l7.15-5.5A.8.8 0 0 1 11 6.5zm10 0v11a.8.8 0 0 1-1.25.66l-7.15-5.5a.8.8 0 0 1 0-1.32l7.15-5.5A.8.8 0 0 1 21 6.5z"/></g></svg></button>
+      </div>
+      <div class="tright"><button id="loopBtn" class="switch on" title="구간 반복 켜기/끄기 (L)" aria-pressed="true">구간 반복</button></div>
     </div>
-
-    <div class="row">
-      <span>구간</span>
-      <button id="setA">A 지정</button>
-      <input type="text" id="aInput" class="time" size="8" title="시작 (분:초)">
-      <span>~</span>
-      <input type="text" id="bInput" class="time" size="8" title="끝 (분:초)">
-      <button id="setB">B 지정</button>
-      <button id="clearAB">구간 해제</button>
+    <div class="tools">
+      <div class="group">
+        <span class="label">반복 구간</span>
+        <button id="setA" class="small" title="지금 위치를 시작으로 (A)">A 시작</button>
+        <input type="text" id="aInput" class="time abInput" placeholder="시작" title="시작 (분:초)">
+        <span class="muted">→</span>
+        <input type="text" id="bInput" class="time abInput" placeholder="끝" title="끝 (분:초)">
+        <button id="setB" class="small" title="지금 위치를 끝으로 (B)">B 끝</button>
+        <button id="clearAB" class="small ghost" title="구간 해제">해제</button>
+      </div>
+      <div class="group">
+        <span class="label">속도</span>
+        <div class="seg"><button data-rate="0.75">0.75</button><button data-rate="0.9">0.9</button><button data-rate="1" class="on">1x</button></div>
+        <input type="range" id="rate" min="0.5" max="1.5" step="0.05" value="1" aria-label="재생 속도">
+        <span id="rateLabel" class="time muted">1.00x</span>
+      </div>
+      <div class="group">
+        <span class="label">음량</span>
+        <button id="muteBtn" class="small ghost volBtn" title="음소거 (M)" aria-label="음소거"><svg class="i-vol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg><svg class="i-mute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z" fill="currentColor"/><path d="m16 9 6 6"/><path d="m22 9-6 6"/></svg></button>
+        <input type="range" id="vol" min="0" max="1" step="0.05" value="1" aria-label="음량">
+        <span id="volLabel" class="time muted">100%</span>
+      </div>
+      <details class="more">
+        <summary>⚙ 반복 설정</summary>
+        <div class="moreBody">
+          <label>구간 앞 여유 <input type="number" id="preroll" min="0" max="10" step="0.5" value="0"> 초</label>
+          <label>반복 사이 쉼 <input type="number" id="gap" min="0" max="10" step="0.5" value="0"> 초</label>
+        </div>
+      </details>
     </div>
+  </section>
 
-    <div class="row">
-      <label>속도 <input type="range" id="rate" min="0.5" max="1.5" step="0.05" value="1"></label>
-      <span id="rateLabel" class="time">1.00x</span>
-      <button data-rate="0.75">0.75x</button>
-      <button data-rate="1">1x</button>
-      <label class="muted">&nbsp;구간 앞 여유 <input type="number" id="preroll" min="0" max="10" step="0.5" value="0">초</label>
-      <label class="muted">반복 사이 쉼 <input type="number" id="gap" min="0" max="10" step="0.5" value="0">초</label>
-    </div>
-  </div>
-
-  <div class="panel" id="sectionsPanel" hidden>
-    <div class="row" style="margin-top:0">
+  <section class="panel" id="sectionsPanel" hidden>
+    <div class="phead"><h2>저장한 구간</h2><span class="muted">숫자키 <kbd>1</kbd>~<kbd>9</kbd>로 바로 재생</span></div>
+    <div class="addRow">
       <input type="text" id="secName" placeholder="구간 이름 (예: 1절, 후렴)">
-      <button id="saveSec" class="primary">현재 구간 저장</button>
-      <span style="flex:1"></span>
-      <button id="exportBtn">내보내기</button>
-      <button id="importBtn">불러오기</button>
+      <button id="saveSec" class="primary">＋ 현재 구간 저장</button>
+    </div>
+    <div id="secList"></div>
+    <div id="noSec" class="empty">아직 저장한 구간이 없어요.<br>파형을 드래그해 구간을 고른 뒤 이름을 적고 <b>현재 구간 저장</b>을 누르세요.</div>
+    <div class="share">
+      <div>
+        <b>다른 기기·사람과 공유</b>
+        <div class="muted">구간은 이 브라우저에만 저장돼요. <b>HTML로 저장</b>한 파일을 보내면, 같은 이름의 음원을 열었을 때 구간이 그대로 나와요. 저장할 때 위치를 고를 수 있고, 다음부터는 지난번 폴더에서 열려요.</div>
+      </div>
+      <div class="shareBtns">
+        <button id="bakeBtn" class="primary">⬇ HTML로 저장</button>
+        <button id="exportBtn" class="small">JSON 내보내기</button>
+        <button id="importBtn" class="small">JSON 불러오기</button>
+      </div>
       <input type="file" id="importInput" accept=".json" hidden>
     </div>
-    <table style="margin-top:10px">
-      <thead><tr><th>#</th><th>이름</th><th>시작</th><th>끝</th><th class="hide-sm">길이</th><th></th></tr></thead>
-      <tbody id="secBody"></tbody>
-    </table>
-    <div id="noSec" class="muted" style="margin-top:8px">저장된 구간이 없습니다. 구간을 고른 뒤 이름을 적고 저장하세요. (브라우저에 자동 보관됨)</div>
-  </div>
+  </section>
 
-  <div class="panel muted">
+  <details class="panel keysPanel">
+    <summary>⌨️ 단축키 보기</summary>
     <div class="keys">
       <div><kbd>Space</kbd> 재생 / 일시정지</div>
-      <div><kbd>A</kbd> / <kbd>B</kbd> 현재 위치를 시작 / 끝으로</div>
+      <div><kbd>A</kbd> / <kbd>B</kbd> 지금 위치를 시작 / 끝으로</div>
       <div><kbd>L</kbd> 구간 반복 켜기/끄기</div>
+      <div><kbd>M</kbd> 음소거 / 소리 켜기</div>
       <div><kbd>Enter</kbd> 구간 처음부터 다시</div>
-      <div><kbd>←</kbd> <kbd>→</kbd> 5초 이동</div>
+      <div><kbd>←</kbd> <kbd>→</kbd> 0.5초 이동</div>
       <div><kbd>,</kbd> <kbd>.</kbd> 1초 이동</div>
       <div><kbd>-</kbd> <kbd>=</kbd> 속도 내리기 / 올리기</div>
-      <div><kbd>1</kbd>~<kbd>9</kbd> 저장된 구간 선택</div>
+      <div><kbd>1</kbd>~<kbd>9</kbd> 저장한 구간 재생</div>
     </div>
-  </div>
+  </details>
 </main>
 
 <audio id="audio" preload="auto"></audio>
 
 <script>
+const PAGE_SRC = '<!doctype html>\n' + document.documentElement.outerHTML; // 수정 전 원본 (HTML 저장용)
+// 'HTML로 저장'으로 넣어 둔 구간 (음원 파일 이름별). BAKED_ID가 바뀌면 브라우저 저장본 대신 이것을 씀
+const BAKED_ID = '';
+const BAKED = {};
 const $ = s => document.querySelector(s);
 const audio = $('#audio');
 const canvas = $('#wave');
@@ -149,14 +313,15 @@ function parseTime(str) {
 const drop = $('#drop'), fileInput = $('#fileInput');
 drop.onclick = () => fileInput.click();
 fileInput.onchange = () => fileInput.files[0] && loadFile(fileInput.files[0]);
-['dragover', 'dragenter'].forEach(e => document.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add('over'); }));
-['dragleave', 'drop'].forEach(e => document.addEventListener(e, ev => { ev.preventDefault(); drop.classList.remove('over'); }));
+$('#changeFile').onclick = () => fileInput.click();
+['dragover', 'dragenter'].forEach(e => document.addEventListener(e, ev => { ev.preventDefault(); document.body.classList.add('over'); }));
+['dragleave', 'drop'].forEach(e => document.addEventListener(e, ev => { ev.preventDefault(); document.body.classList.remove('over'); }));
 document.addEventListener('drop', ev => { const f = ev.dataTransfer.files[0]; if (f) loadFile(f); });
 
 async function loadFile(file) {
   fileKey = 'sections:' + file.name + ':' + file.size;
   $('#fileName').textContent = file.name;
-  drop.textContent = '다른 파일을 열려면 끌어다 놓거나 클릭하세요';
+  drop.hidden = true;
   if (audio.src) URL.revokeObjectURL(audio.src);
   audio.src = URL.createObjectURL(file);
   $('#player').hidden = false;
@@ -277,13 +442,15 @@ function restartSection() {
   if (A != null) seek(Math.max(0, A - +$('#preroll').value));
   audio.play();
 }
-audio.onplay = audio.onpause = () => { $('#playBtn').textContent = audio.paused ? '▶ 재생' : '⏸ 일시정지'; };
+audio.onplay = audio.onpause = () => { $('#playBtn').classList.toggle('playing', !audio.paused); $('#playBtn').setAttribute('aria-label', audio.paused ? '재생' : '일시정지'); };
 $('#playBtn').onclick = togglePlay;
+$('#back5').onclick = () => seek(audio.currentTime - 5);
+$('#fwd5').onclick = () => seek(audio.currentTime + 5);
 
 function setLoop(v) {
   loop = v;
   $('#loopBtn').classList.toggle('on', loop);
-  $('#loopBtn').textContent = loop ? '🔁 구간 반복 켜짐' : '🔁 구간 반복 꺼짐';
+  $('#loopBtn').setAttribute('aria-pressed', loop);
 }
 $('#loopBtn').onclick = () => setLoop(!loop);
 
@@ -302,9 +469,35 @@ function setRate(r) {
   r = Math.min(Math.max(+r, 0.5), 1.5);
   audio.playbackRate = r; audio.preservesPitch = true;
   $('#rate').value = r; $('#rateLabel').textContent = r.toFixed(2) + 'x';
+  document.querySelectorAll('[data-rate]').forEach(b => b.classList.toggle('on', Math.abs(b.dataset.rate - r) < 0.001));
 }
 $('#rate').oninput = () => setRate($('#rate').value);
 document.querySelectorAll('[data-rate]').forEach(b => b.onclick = () => setRate(b.dataset.rate));
+
+// 음량 (이 브라우저에 기억)
+let lastVol = 1;
+function showVolume() {
+  const off = audio.muted || audio.volume === 0;
+  $('#vol').value = audio.muted ? 0 : audio.volume;
+  $('#volLabel').textContent = off ? '0%' : Math.round(audio.volume * 100) + '%';
+  $('#muteBtn').classList.toggle('muted', off);
+  $('#muteBtn').setAttribute('aria-label', off ? '소리 켜기' : '음소거');
+}
+function setVolume(v) {
+  v = Math.round(Math.min(Math.max(+v, 0), 1) * 100) / 100;
+  audio.volume = v; audio.muted = false;
+  if (v > 0) lastVol = v;
+  try { localStorage.setItem('practice-volume', v); } catch {}
+  showVolume();
+}
+function toggleMute() {
+  if (audio.volume === 0) return setVolume(lastVol || 1);
+  audio.muted = !audio.muted; showVolume();
+}
+$('#vol').oninput = () => setVolume($('#vol').value);
+$('#muteBtn').onclick = toggleMute;
+try { const v = localStorage.getItem('practice-volume'); if (v != null) { audio.volume = +v; if (+v > 0) lastVol = +v; } } catch {}
+showVolume();
 
 // 반복 감시 (requestAnimationFrame 으로 정확하게)
 function tick() {
@@ -328,37 +521,44 @@ audio.addEventListener('play', () => { waiting = false; });
 
 // ---------- 저장된 구간 ----------
 function loadSections() {
+  const baked = BAKED[$('#fileName').textContent];
+  let mark = null;
+  try { mark = localStorage.getItem(fileKey + ':baked'); } catch {}
+  if (baked && mark !== BAKED_ID) { sections = JSON.parse(JSON.stringify(baked)); saveSections(); return; }
   try { sections = JSON.parse(localStorage.getItem(fileKey)) || []; } catch { sections = []; }
   renderSections();
 }
 function saveSections() {
-  try { localStorage.setItem(fileKey, JSON.stringify(sections)); } catch {}
+  try { localStorage.setItem(fileKey, JSON.stringify(sections)); localStorage.setItem(fileKey + ':baked', BAKED_ID); } catch {}
   renderSections(); draw();
 }
 function renderSections() {
-  const body = $('#secBody'); body.innerHTML = '';
+  const list = $('#secList'); list.innerHTML = '';
   $('#noSec').hidden = sections.length > 0;
   sections.forEach((s, i) => {
-    const tr = document.createElement('tr');
-    if (i === activeIdx) tr.className = 'active';
-    tr.innerHTML = `<td>${i + 1}</td><td><input type="text"></td>
-      <td class="time">${fmt(s.start)}</td><td class="time">${fmt(s.end)}</td>
-      <td class="time hide-sm">${(s.end - s.start).toFixed(1)}초</td>
-      <td style="white-space:nowrap"><button class="play">▶</button> <button class="upd" title="현재 A~B로 덮어쓰기">⟳</button> <button class="x" title="삭제">✕</button></td>`;
-    const name = tr.querySelector('input');
+    const el = document.createElement('div');
+    el.className = 'sec item' + (i === activeIdx ? ' active' : '');
+    el.innerHTML = `<button class="secPlay play" title="반복 재생" aria-label="반복 재생"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg></button>
+      <span class="num">${i < 9 ? i + 1 : ''}</span>
+      <input type="text" class="nm" aria-label="구간 이름">
+      <span class="time muted rng">${fmt(s.start)} – ${fmt(s.end)}</span>
+      <span class="time muted rng hide-sm">${(s.end - s.start).toFixed(1)}초</span>
+      <span class="acts"><button class="small ghost upd" title="현재 A~B로 덮어쓰기">⟳</button><button class="small ghost danger x" title="삭제">✕</button></span>`;
+    const name = el.querySelector('input');
     name.value = s.name;
     name.onchange = () => { s.name = name.value; saveSections(); };
-    tr.querySelector('.play').onclick = () => selectSection(i, true);
-    tr.querySelector('.upd').onclick = () => {
+    el.onclick = ev => { if (!ev.target.closest('input, button')) selectSection(i, true); };
+    el.querySelector('.play').onclick = () => selectSection(i, true);
+    el.querySelector('.upd').onclick = () => {
       if (A == null || B == null) return alert('먼저 A~B 구간을 지정하세요.');
       s.start = A; s.end = B; activeIdx = i; saveSections();
     };
-    tr.querySelector('.x').onclick = () => {
+    el.querySelector('.x').onclick = () => {
       if (!confirm(`"${s.name}" 구간을 삭제할까요?`)) return;
       sections.splice(i, 1); if (activeIdx === i) activeIdx = -1; else if (activeIdx > i) activeIdx--;
       saveSections();
     };
-    body.appendChild(tr);
+    list.appendChild(el);
   });
 }
 function selectSection(i, play) {
@@ -398,6 +598,49 @@ $('#importInput').onchange = async () => {
   } catch { alert('구간 파일을 읽을 수 없습니다.'); }
   $('#importInput').value = '';
 };
+// 지금 구간을 넣은 HTML 파일을 새로 만듦 (이전에 넣어 둔 다른 곡 구간도 유지)
+$('#bakeBtn').onclick = () => {
+  const from = PAGE_SRC.indexOf('const BAKED_ID'), to = PAGE_SRC.indexOf('\nconst $ =');
+  if (from < 0 || to < 0) return alert('HTML을 만들 수 없습니다.');
+  const all = { ...BAKED, [$('#fileName').textContent]: sections };
+  const id = new Date().toISOString();
+  const json = JSON.stringify(all).replace(/</g, '\\u003c');
+  const html = PAGE_SRC.slice(0, from) + `const BAKED_ID = '${id}';\nconst BAKED = ${json};` + PAGE_SRC.slice(to);
+  saveHtml(html, '구간연습.html');
+};
+
+// HTML 저장: 저장 위치를 고를 수 있으면 고르게 하고, 다음부터는 지난번 저장한 폴더에서 바로 열림
+function saveDb(mode, fn) {
+  return new Promise((ok, no) => {
+    const r = indexedDB.open('practice-save', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('h');
+    r.onerror = () => no(r.error);
+    r.onsuccess = () => {
+      try {
+        const tx = r.result.transaction('h', mode), q = fn(tx.objectStore('h'));
+        tx.oncomplete = () => ok(q && q.result); tx.onerror = () => no(tx.error);
+      } catch (e) { no(e); }
+    };
+  });
+}
+async function saveHtml(html, name) {
+  if (window.showSaveFilePicker) {
+    let last = null;
+    try { last = await saveDb('readonly', s => s.get('last')); } catch {}
+    for (const startIn of last ? [last, 'downloads'] : ['downloads']) {
+      try {
+        const h = await showSaveFilePicker({ suggestedName: name, startIn, types: [{ description: 'HTML 파일', accept: { 'text/html': ['.html'] } }] });
+        const w = await h.createWritable(); await w.write(html); await w.close();
+        try { await saveDb('readwrite', s => s.put(h, 'last')); } catch {}
+        return;
+      } catch (e) { if (e.name === 'AbortError') return; }
+    }
+  }
+  // 위치를 고를 수 없는 브라우저는 다운로드 폴더로
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+  a.download = name; a.click();
+}
 
 // ---------- 단축키 ----------
 document.addEventListener('keydown', e => {
@@ -408,9 +651,10 @@ document.addEventListener('keydown', e => {
   else if (k === 'a' || k === 'A') setA(audio.currentTime);
   else if (k === 'b' || k === 'B') setB(audio.currentTime);
   else if (k === 'l' || k === 'L') setLoop(!loop);
+  else if (k === 'm' || k === 'M') toggleMute();
   else if (k === 'Enter') restartSection();
-  else if (k === 'ArrowLeft') { e.preventDefault(); seek(audio.currentTime - 5); }
-  else if (k === 'ArrowRight') { e.preventDefault(); seek(audio.currentTime + 5); }
+  else if (k === 'ArrowLeft') { e.preventDefault(); seek(audio.currentTime - 0.5); }
+  else if (k === 'ArrowRight') { e.preventDefault(); seek(audio.currentTime + 0.5); }
   else if (k === ',') seek(audio.currentTime - 1);
   else if (k === '.') seek(audio.currentTime + 1);
   else if (k === '-') setRate(audio.playbackRate - 0.05);
