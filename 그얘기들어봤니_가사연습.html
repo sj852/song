@@ -1,0 +1,1019 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>그 얘기 들어봤니 연습</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  :root {
+    --bg: #f6f2ec; --panel: #fffdf9; --soft: #f1ebe2; --soft-2: #e6ded2; --text: #2a211f; --muted: #7b6f68; --faint: #b4aaa1; --line: #ece5db;
+    --accent: #b9312a; --accent-hover: #a32821; --accent-soft: rgba(185,49,42,.11); --accent-glow: rgba(185,49,42,.28); --on-accent: #fff;
+    --gold: #b0801f; --wave: #d8cfc3; --played: #b9312a; --danger: #c0392b;
+    --shadow: 0 1px 2px rgba(60,35,20,.05), 0 8px 28px rgba(60,35,20,.06);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0c111d; --panel: #141a2a; --soft: #1d2538; --soft-2: #283148; --text: #eef0f6; --muted: #9ea6bb; --faint: #5a6480; --line: #212a3f;
+      --accent: #ef5a4c; --accent-hover: #f46d60; --accent-soft: rgba(239,90,76,.16); --accent-glow: rgba(239,90,76,.32); --on-accent: #fff;
+      --gold: #ecbd55; --wave: #343e57; --played: #ff7869; --danger: #ff6b5b;
+      --shadow: none;
+      color-scheme: dark;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { min-height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 "Pretendard Variable", Pretendard, system-ui, "Malgun Gothic", sans-serif; -webkit-font-smoothing: antialiased; }
+  main { margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 22px; margin: 0; letter-spacing: -.02em; }
+  h2 { font-size: 16px; margin: 0; letter-spacing: -.01em; }
+  .sub { color: var(--muted); font-size: 13px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; margin-bottom: 16px; box-shadow: var(--shadow); }
+  .phead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .grow { flex: 1; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .time { font-variant-numeric: tabular-nums; }
+
+  /* 버튼 */
+  button { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 14px; border: 0; border-radius: 10px; background: var(--soft); color: var(--text);
+           cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap;
+           transition: background .15s, color .15s, box-shadow .15s, transform .1s; }
+  button:hover { background: var(--soft-2); }
+  button:active { transform: scale(.96); }
+  button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button.primary, button.on { background: var(--accent); color: var(--on-accent); }
+  button.primary:hover, button.on:hover { background: var(--accent-hover); }
+  button.small { padding: 5px 10px; font-size: 13px; border-radius: 8px; }
+  button.ghost { background: transparent; color: var(--muted); }
+  button.ghost:hover { background: var(--soft); color: var(--text); }
+  button.danger:hover { color: var(--danger); }
+  button.wide { width: 100%; padding: 11px 14px; }
+
+  /* 입력 */
+  input[type=text], input[type=number] { font: inherit; font-size: 14px; padding: 7px 10px; border: 1px solid transparent; border-radius: 10px; background: var(--soft); color: var(--text); transition: border-color .15s, background .15s; }
+  input[type=text]:focus, input[type=number]:focus { outline: none; border-color: var(--accent); background: var(--panel); }
+  input[type=number] { width: 64px; }
+  input[type=range] { accent-color: var(--accent); width: 110px; }
+  input::placeholder { color: var(--faint); }
+
+  /* 파형 */
+  #waveWrap { position: relative; user-select: none; touch-action: none; cursor: crosshair; border-radius: 12px; background: var(--soft); overflow: hidden; }
+  canvas { width: 100%; height: 100%; display: block; }
+  .hint { color: var(--faint); font-size: 12px; margin-top: 6px; text-align: center; }
+
+  /* 재생 컨트롤 */
+  .transport { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin-top: 12px; }
+  .clock { font-size: 16px; font-weight: 600; color: var(--muted); }
+  .tcenter { display: flex; align-items: center; gap: 12px; }
+  .tright { justify-self: end; }
+  .round { width: 44px; height: 44px; padding: 0; border-radius: 50%; }
+  .round svg { width: 20px; height: 20px; }
+  #playBtn { width: 64px; height: 64px; padding: 0; border-radius: 50%; background: var(--accent); color: var(--on-accent); box-shadow: 0 8px 24px var(--accent-glow); }
+  #playBtn:hover { background: var(--accent-hover); }
+  #playBtn svg { width: 28px; height: 28px; }
+  #playBtn .i-play { margin-left: 3px; }
+  #playBtn .i-pause, #playBtn.playing .i-play { display: none; }
+  #playBtn.playing .i-pause { display: block; }
+
+  /* 반복 스위치 */
+  button.switch, button.switch:hover, button.switch.on, button.switch.on:hover { background: transparent; color: var(--muted); padding: 6px 2px; gap: 10px; }
+  button.switch.on, button.switch.on:hover { color: var(--text); }
+  .switch::before { content: ''; flex: none; width: 40px; height: 24px; border-radius: 99px; background-color: var(--soft-2);
+                    background-image: radial-gradient(circle at 12px 50%, #fff 8px, transparent 8.6px); transition: background-color .2s; }
+  .switch.on::before { background-color: var(--accent); background-image: radial-gradient(circle at 28px 50%, #fff 8px, transparent 8.6px); }
+
+  /* 도구 줄 */
+  .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 22px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .group { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .label { font-size: 12px; font-weight: 700; color: var(--muted); margin-right: 2px; }
+  .abInput { width: 78px; text-align: center; }
+  .seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 10px; background: var(--soft); }
+  .seg button, .seg button:hover { background: transparent; color: var(--muted); padding: 4px 10px; font-size: 13px; border-radius: 8px; }
+  .seg button:hover { color: var(--text); }
+  .seg button.on, .seg button.on:hover { background: var(--panel); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.14); }
+  details.more { display: block; }
+  details.more summary { cursor: pointer; list-style: none; font-size: 13px; font-weight: 600; color: var(--muted); padding: 5px 10px; border-radius: 8px; }
+  details.more summary::-webkit-details-marker { display: none; }
+  details.more summary:hover, details.more[open] summary { background: var(--soft); color: var(--text); }
+  .moreBody { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 8px; font-size: 13px; color: var(--muted); }
+
+  /* 음량 */
+  button.volBtn { padding: 4px 6px; }
+  .volBtn svg { width: 18px; height: 18px; display: block; }
+  .volBtn .i-mute, .volBtn.muted .i-vol { display: none; }
+  .volBtn.muted .i-mute { display: block; }
+  .volBtn.muted { color: var(--danger); }
+  input#vol { width: 90px; }
+  #volLabel { min-width: 34px; }
+
+  /* 단축키 */
+  .keysPanel summary { cursor: pointer; list-style: none; font-weight: 600; color: var(--muted); }
+  .keysPanel summary::-webkit-details-marker { display: none; }
+  .keysPanel[open] summary { margin-bottom: 10px; }
+  .keys { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 6px 16px; color: var(--muted); font-size: 13px; }
+  kbd { font-family: inherit; font-size: 12px; font-weight: 600; color: var(--text); background: var(--soft); border-radius: 6px; padding: 1px 6px; box-shadow: inset 0 -1px 0 var(--soft-2); }
+
+  /* 목록 공통 (구간 / 파트) */
+  .acts { display: inline-flex; gap: 2px; }
+  @media (hover: hover) {
+    .item .acts { opacity: 0; transition: opacity .15s; }
+    .item:hover .acts, .item.active .acts, .item:focus-within .acts { opacity: 1; }
+  }
+  .addRow { display: flex; gap: 8px; margin-top: 12px; }
+  .addRow input { flex: 1; min-width: 0; }
+
+  @media (max-width: 600px) {
+    .hide-sm { display: none; }
+    .transport { grid-template-columns: 1fr auto; }
+    .tcenter { grid-column: 1 / -1; order: -1; justify-content: center; }
+    .tools { gap: 12px; }
+  }
+
+  main { max-width: 1120px; }
+  .hero { display: flex; align-items: center; gap: 16px; padding: 22px 24px; border-radius: 20px; margin-bottom: 16px; color: #fff;
+          background:
+            radial-gradient(circle 2px at 14% 28%, rgba(255,255,255,.9) 0 1px, transparent 2px),
+            radial-gradient(circle 2px at 31% 72%, rgba(255,255,255,.6) 0 1px, transparent 2px),
+            radial-gradient(circle 2px at 52% 20%, rgba(255,255,255,.8) 0 1px, transparent 2px),
+            radial-gradient(circle 2px at 68% 66%, rgba(255,255,255,.55) 0 1px, transparent 2px),
+            radial-gradient(circle 2px at 83% 30%, rgba(255,255,255,.9) 0 1px, transparent 2px),
+            radial-gradient(circle 2px at 93% 76%, rgba(255,255,255,.6) 0 1px, transparent 2px),
+            radial-gradient(120% 160% at 100% 0%, rgba(150,40,55,.75) 0%, transparent 55%),
+            linear-gradient(135deg, #131a33, #232b52);
+          box-shadow: var(--shadow); }
+  .hero .star { flex: none; width: 54px; height: 54px; display: grid; place-items: center; border-radius: 16px; background: rgba(255,255,255,.08);
+                font-size: 30px; color: #f5c95c; text-shadow: 0 0 18px rgba(245,201,92,.75); }
+  .hero h1 { font-size: 24px; }
+  .hero .sub { color: rgba(255,255,255,.72); }
+  #missing { display: none; background: var(--accent-soft); border-color: transparent; box-shadow: none; }
+
+  #waveWrap { height: 128px; }
+  .cols { display: grid; grid-template-columns: 1fr 320px; gap: 16px; align-items: start; }
+  .cols > * { min-width: 0; }
+  .cols .panel { margin-bottom: 16px; }
+  @media (max-width: 860px) { .cols { grid-template-columns: 1fr; } }
+
+  /* 가사 */
+  .lyricsPanel { padding: 16px 12px 6px; }
+  .lyricsPanel .phead { padding: 0 6px; }
+  #lyricsBox { height: 58vh; min-height: 340px; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; padding: 4px 4px 30vh; position: relative; }
+  .partHead { display: inline-block; color: var(--gold); background: var(--soft); font-size: 12px; font-weight: 700; letter-spacing: .03em;
+              padding: 3px 10px; border-radius: 99px; margin: 22px 0 6px 6px; }
+  .partHead:first-child { margin-top: 6px; }
+  .lyric { position: relative; padding: 7px 12px; border-radius: 12px; cursor: pointer; font-size: 22px; font-weight: 700; letter-spacing: -.01em;
+           color: var(--faint); transition: color .25s, background .15s; display: flex; align-items: center; gap: 12px; }
+  .lyric:hover { background: var(--soft); }
+  .lyric .txt { flex: 0 1 auto; transform-origin: left center; transition: transform .25s; }
+  .lyric .txt + * { margin-left: auto; }
+  .lyric .lt { font-size: 12px; font-weight: 500; color: var(--faint); min-width: 40px; }
+  .lyric.past { color: var(--muted); }
+  .lyric.now .txt {
+    background: linear-gradient(90deg, var(--accent) var(--p, 0%), var(--text) var(--p, 0%));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .lyric.now .txt { transform: scale(1.04); }
+  .lyric.inloop { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+  .lyric .loopBtn { flex: none; width: 32px; height: 32px; padding: 0; border-radius: 50%; background: var(--panel); color: var(--muted);
+                    box-shadow: 0 0 0 1px var(--line); opacity: 0; transition: opacity .15s, background .15s, color .15s; }
+  .lyric .loopBtn svg { width: 15px; height: 15px; }
+  .lyric:hover .loopBtn, .lyric .loopBtn:focus-visible { opacity: 1; }
+  .lyric .loopBtn:hover { color: var(--accent); box-shadow: 0 0 0 1px var(--accent); background: var(--panel); }
+  .lyric.inloop .loopBtn { opacity: 1; background: var(--accent); color: var(--on-accent); box-shadow: 0 4px 12px var(--accent-glow); }
+  @media (hover: none) { .lyric .loopBtn { opacity: .55; } }
+  .ico { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--soft); color: var(--muted); vertical-align: -4px; }
+  .ico svg { width: 11px; height: 11px; }
+  .chk { font-size: 11px; color: var(--gold); border: 1px solid var(--gold); border-radius: 6px; padding: 0 5px; font-weight: 600; }
+  .gapNote { color: var(--faint); font-size: 16px; padding: 4px 12px; letter-spacing: .3em; }
+  .gapNote.now { color: var(--gold); }
+
+  /* 편집 모드 */
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  #editBar { display: none; margin: 0 6px 10px; padding: 10px 12px; border-radius: 12px; background: var(--soft); }
+  .edit #editBar { display: flex; }
+  .edit .lyric { font-size: 15px; font-weight: 500; color: var(--text); cursor: default; padding: 4px 6px; gap: 6px; }
+  .edit .lyric:hover { background: transparent; }
+  .edit .lyric .txt { background: none; color: var(--text); transform: none; }
+  .edit #lyricsBox { padding: 4px; }
+  .lyric input.tIn { width: 76px; }
+  .lyric input.txtIn { flex: 1; min-width: 0; }
+  .lyric.sel, .edit .lyric.sel:hover { background: var(--accent-soft); }
+
+  /* 파트 */
+  #parts { display: flex; flex-direction: column; gap: 2px; }
+  .part { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 10px; cursor: pointer; transition: background .15s; }
+  .part:hover { background: var(--soft); }
+  .part.active { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+  .part .num { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; background: var(--soft); color: var(--muted); }
+  .part.active .num { background: var(--accent); color: var(--on-accent); }
+  .part .nm { flex: 1; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .part .pt { font-size: 12px; }
+  .part .acts button { padding: 3px 7px; }
+
+  .note { margin: 10px 0 12px; line-height: 1.55; }
+  .row2 { display: flex; gap: 6px; }
+  .row2 button { flex: 1; }
+  .keysPanel .keys { grid-template-columns: 1fr; }
+  @media (max-width: 600px) { .lyric { font-size: 19px; padding: 6px 8px; gap: 8px; } .lyric .lt { min-width: 32px; } .hero { padding: 18px; } }
+</style>
+</head>
+<body>
+<main>
+  <header class="hero">
+    <div class="star">★</div>
+    <div>
+      <h1>그 얘기 들어봤니</h1>
+      <div class="sub">히즈윌 Christmas 노엘 · 가사를 누르면 그 줄부터 재생돼요</div>
+    </div>
+  </header>
+
+  <div class="panel" id="missing">
+    음원 파일을 찾지 못했어요. 이 HTML과 같은 폴더에 <b>히즈윌 Christmas 노엘 그 얘기 들어봤니 (가사).mp3</b>가 있는지 확인하거나,
+    <button id="pickBtn" class="small primary">직접 선택</button> 해 주세요.
+    <input type="file" id="fileInput" accept="audio/*,.m4a" hidden>
+  </div>
+
+  <section class="panel">
+    <div id="waveWrap"><canvas id="wave"></canvas></div>
+    <div class="hint">파형을 클릭하면 이동 · 드래그하면 반복 구간 선택</div>
+    <div class="transport">
+      <div id="clock" class="clock time">0:00.0 / 0:00.0</div>
+      <div class="tcenter">
+        <button id="back5" class="round" title="5초 뒤로" aria-label="5초 뒤로"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11 6.5v11a.8.8 0 0 1-1.25.66L2.6 12.66a.8.8 0 0 1 0-1.32l7.15-5.5A.8.8 0 0 1 11 6.5zm10 0v11a.8.8 0 0 1-1.25.66l-7.15-5.5a.8.8 0 0 1 0-1.32l7.15-5.5A.8.8 0 0 1 21 6.5z"/></svg></button>
+        <button id="playBtn" title="재생 / 일시정지 (Space)" aria-label="재생"><svg class="i-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg><svg class="i-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4.5" height="14" rx="1.2"/><rect x="13.5" y="5" width="4.5" height="14" rx="1.2"/></svg></button>
+        <button id="fwd5" class="round" title="5초 앞으로" aria-label="5초 앞으로"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g transform="matrix(-1 0 0 1 24 0)"><path d="M11 6.5v11a.8.8 0 0 1-1.25.66L2.6 12.66a.8.8 0 0 1 0-1.32l7.15-5.5A.8.8 0 0 1 11 6.5zm10 0v11a.8.8 0 0 1-1.25.66l-7.15-5.5a.8.8 0 0 1 0-1.32l7.15-5.5A.8.8 0 0 1 21 6.5z"/></g></svg></button>
+      </div>
+      <div class="tright"><button id="loopBtn" class="switch" title="구간 반복 켜기/끄기 (L)" aria-pressed="false">구간 반복</button></div>
+    </div>
+    <div class="tools">
+      <div class="group">
+        <span class="label">반복 구간</span>
+        <button id="setA" class="small" title="지금 위치를 시작으로 (A)">A 시작</button>
+        <input type="text" id="aInput" class="time abInput" placeholder="시작" title="시작 (분:초)">
+        <span class="muted">→</span>
+        <input type="text" id="bInput" class="time abInput" placeholder="끝" title="끝 (분:초)">
+        <button id="setB" class="small" title="지금 위치를 끝으로 (B)">B 끝</button>
+        <button id="clearAB" class="small ghost" title="구간 해제">해제</button>
+      </div>
+      <div class="group">
+        <span class="label">속도</span>
+        <div class="seg"><button data-rate="0.75">0.75</button><button data-rate="0.9">0.9</button><button data-rate="1" class="on">1x</button></div>
+        <input type="range" id="rate" min="0.5" max="1.5" step="0.05" value="1" aria-label="재생 속도">
+        <span id="rateLabel" class="time muted">1.00x</span>
+      </div>
+      <div class="group">
+        <span class="label">음량</span>
+        <button id="muteBtn" class="small ghost volBtn" title="음소거 (M)" aria-label="음소거"><svg class="i-vol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg><svg class="i-mute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z" fill="currentColor"/><path d="m16 9 6 6"/><path d="m22 9-6 6"/></svg></button>
+        <input type="range" id="vol" min="0" max="1" step="0.05" value="1" aria-label="음량">
+        <span id="volLabel" class="time muted">100%</span>
+      </div>
+      <details class="more">
+        <summary>⚙ 반복 설정</summary>
+        <div class="moreBody">
+          <label>구간 앞 여유 <input type="number" id="preroll" min="0" max="10" step="0.5" value="1"> 초</label>
+          <label>반복 사이 쉼 <input type="number" id="gap" min="0" max="10" step="0.5" value="0"> 초</label>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <div class="cols" id="cols">
+    <section class="panel lyricsPanel">
+      <div class="phead">
+        <h2>가사</h2>
+        <span class="muted hide-sm">줄을 누르면 그 줄부터 · <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg></span> 그 줄만 반복</span>
+        <span class="grow"></span>
+        <button id="editBtn" class="small">✏️ 가사·타이밍 수정</button>
+      </div>
+      <div id="editBar" class="row">
+        <span class="muted grow">재생하면서 <kbd>T</kbd>를 누르면 선택된 줄의 시작이 지금 시각으로 맞춰지고 다음 줄로 넘어가요.</span>
+        <button id="addLine" class="small">＋ 줄 추가</button>
+        <button id="resetBtn" class="small ghost danger">처음 상태로</button>
+      </div>
+      <div id="lyricsBox"></div>
+    </section>
+
+    <aside>
+      <section class="panel">
+        <div class="phead"><h2>파트</h2><span class="muted">누르면 재생 · 반복은 구간 반복 켜기</span></div>
+        <div id="parts"></div>
+        <div class="addRow">
+          <input type="text" id="partName" placeholder="새 구간 이름">
+          <button id="addPart" class="small primary" title="지금 A~B 구간을 파트로 추가">＋ A~B 추가</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="phead"><h2>저장 · 공유</h2></div>
+        <button id="bakeBtn" class="primary wide">⬇ HTML로 저장 (공유용)</button>
+        <div class="muted note">고친 가사·구간은 이 브라우저에 자동 저장돼요. 다른 기기나 사람에게 주려면 위 버튼으로 저장한 HTML을 <b>음원과 같은 폴더</b>에 넣어 보내세요. 저장할 때 위치를 고를 수 있고, 다음부터는 지난번 폴더에서 열려요.</div>
+        <div class="row2">
+          <button id="exportBtn" class="small">JSON 내보내기</button>
+          <button id="importBtn" class="small">JSON 불러오기</button>
+        </div>
+        <input type="file" id="importInput" accept=".json" hidden>
+      </section>
+
+      <details class="panel keysPanel">
+        <summary>⌨️ 단축키 보기</summary>
+        <div class="keys">
+          <div><kbd>Space</kbd> 재생 / 일시정지</div>
+          <div><kbd>↑</kbd> <kbd>↓</kbd> 이전 / 다음 줄</div>
+          <div><kbd>R</kbd> 지금 줄만 반복</div>
+          <div><kbd>A</kbd> <kbd>B</kbd> 구간 시작 / 끝 지정</div>
+          <div><kbd>L</kbd> 반복 켜기/끄기 · <kbd>Enter</kbd> 구간 처음</div>
+          <div><kbd>M</kbd> 음소거 / 소리 켜기</div>
+          <div><kbd>←</kbd> <kbd>→</kbd> 0.5초 · <kbd>,</kbd> <kbd>.</kbd> 1초</div>
+          <div><kbd>-</kbd> <kbd>=</kbd> 속도 · <kbd>1</kbd>~<kbd>9</kbd> 파트</div>
+        </div>
+      </details>
+    </aside>
+  </div>
+</main>
+
+<audio id="audio" preload="auto" src="히즈윌 Christmas 노엘 그 얘기 들어봤니 (가사).mp3"></audio>
+
+<script>
+const PAGE_SRC = '<!doctype html>\n' + document.documentElement.outerHTML; // 수정 전 원본 (HTML 저장용)
+// ===== 음원에 맞춘 기본 데이터 (원래 가사 + 음성 인식 타이밍) =====
+const PEAKS = [0, 0, 0.414, 0.764, 0.636, 0.831, 0.486, 0.859, 0.575, 0.526, 0.792, 0.537, 0.864, 0.645, 0.869, 0.908, 0.648, 0.788, 0.592, 0.775, 0.534, 0.711, 0.682, 0.519, 0.845, 0.651, 0.842, 0.604, 0.842, 0.888, 0.514, 0.877, 0.693, 0.767, 0.706, 0.594, 0.806, 0.703, 0.805, 0.556, 0.758, 0.724, 0.591, 0.614, 0.476, 0.65, 0.531, 0.489, 0.884, 0.329, 0.588, 0.514, 0.807, 0.849, 0.6, 0.748, 0.539, 0.908, 0.689, 0.896, 0.689, 0.533, 0.615, 0.43, 0.781, 0.489, 0.743, 0.799, 0.34, 0.86, 0.62, 0.702, 0.818, 0.642, 0.592, 0.503, 0.806, 0.47, 0.503, 0.439, 0.478, 0.611, 0.407, 0.412, 0.497, 0.826, 0.628, 0.507, 0.684, 0.434, 0.493, 0.301, 0.627, 0.691, 0.571, 0.827, 0.844, 0.944, 0.943, 0.906, 0.967, 0.939, 0.924, 0.783, 0.525, 0.842, 0.701, 0.858, 0.855, 0.909, 0.832, 0.809, 0.844, 0.644, 0.403, 0.257, 0.707, 0.747, 0.867, 0.889, 0.554, 0.74, 0.834, 0.766, 0.554, 0.234, 0.835, 0.701, 0.751, 0.715, 0.664, 0.813, 0.812, 0.895, 0.877, 0.886, 0.751, 0.288, 0.915, 0.739, 0.392, 0.395, 0.882, 0.821, 0.828, 0.961, 0.79, 0.935, 0.786, 0.754, 0.815, 0.583, 0.834, 0.65, 0.831, 0.832, 0.797, 0.927, 0.857, 0.74, 0.636, 0.686, 0.444, 0.144, 0.547, 0.532, 0.939, 0.718, 0.745, 0.837, 0.854, 0.858, 0.647, 0.748, 0.628, 0.727, 0.853, 0.678, 0.288, 0.278, 0.854, 0.834, 0.846, 0.659, 0.638, 0.824, 0.777, 0.775, 0.849, 0.876, 0.947, 0.736, 0.936, 0.8, 0.432, 0.923, 0.817, 0.672, 0.44, 0.827, 0.858, 0.685, 0.805, 0.795, 0.78, 0.687, 0.814, 0.783, 0.335, 0.834, 0.493, 0.818, 0.744, 0.773, 0.809, 0.614, 0.807, 0.57, 0.488, 0.256, 0.422, 0.456, 0.354, 0.868, 0.856, 0.868, 0.811, 0.738, 0.897, 0.821, 0.634, 0.889, 0.64, 0.72, 0.707, 0.812, 0.773, 0.8, 0.649, 0.838, 0.882, 0.864, 0.836, 0.607, 0.468, 0.369, 0.459, 0.431, 0.494, 0.886, 0.77, 0.911, 0.839, 0.593, 0.634, 0.468, 0.676, 0.571, 0.6, 0.747, 0.583, 0.91, 0.8, 0.761, 0.85, 0.612, 0.793, 0.2, 0.815, 0.789, 0.919, 0.867, 0.527, 0.822, 0.849, 0.792, 0.483, 0.863, 0.92, 0.72, 0.81, 0.732, 0.921, 0.895, 0.858, 0.912, 0.613, 0.865, 0.309, 0.831, 0.704, 0.454, 0.451, 0.362, 0.899, 0.908, 0.928, 0.846, 0.731, 0.932, 0.872, 0.907, 0.736, 0.794, 0.899, 0.851, 0.906, 0.403, 0.932, 0.885, 0.776, 0.674, 0.831, 0.83, 0.304, 0.71, 0.624, 0.707, 0.869, 0.709, 0.935, 0.839, 0.92, 0.883, 0.493, 0.904, 0.306, 0.81, 0.809, 0.53, 0.378, 0.237, 0.804, 0.749, 0.863, 0.879, 0.698, 0.854, 0.919, 0.935, 0.956, 0.796, 0.946, 0.919, 0.73, 0.53, 0.891, 0.888, 0.902, 0.861, 0.5, 0.912, 0.791, 0.882, 0.926, 0.909, 0.648, 0.379, 0.601, 0.716, 0.91, 0.892, 0.947, 0.947, 0.897, 0.949, 0.908, 0.815, 0.758, 0.411, 0.736, 0.312, 0.891, 0.832, 0.846, 0.908, 0.888, 0.859, 0.854, 0.895, 0.754, 0.487, 0.913, 0.9, 0.809, 0.716, 0.873, 0.847, 0.76, 0.785, 0.333, 0.881, 0.717, 0.86, 0.776, 0.717, 0.929, 0.936, 0.887, 0.837, 0.606, 0.78, 0.347, 0.903, 0.824, 0.862, 0.819, 0.805, 0.925, 0.687, 0.83, 0.802, 0.833, 0.824, 0.796, 0.877, 0.938, 0.919, 0.947, 0.805, 0.879, 0.642, 0.866, 0.621, 0.422, 0.378, 0.897, 0.95, 0.916, 0.929, 0.793, 0.882, 0.941, 0.922, 0.72, 0.741, 0.892, 0.635, 0.934, 1, 0.802, 0.734, 0.54, 0.89, 0.885, 0.838, 0.858, 0.608, 0.834, 0.785, 0.901, 0.932, 0.858, 0.896, 0.815, 0.882, 0.846, 0.696, 0.692, 0.506, 0.555, 0.499, 0.537, 0.608, 0.876, 0.924, 0.78, 0.937, 0.908, 0.692, 0.715, 0.778, 0.693, 0.651, 0.752, 0.383, 0.834, 0.954, 0.843, 0.925, 0.955, 0.923, 0.932, 0.939, 0.885, 0.819, 0.844, 0.824, 0.777, 0.795, 0.851, 0.942, 0.893, 0.828, 0.836, 0.694, 0.591, 0.57, 0.527, 0.449, 0.442, 0.425, 0.885, 0.876, 0.706, 0.845, 0.67, 0.937, 0.931, 0.932, 0.926, 0.857, 0.854, 0.36, 0.944, 0.799, 0.949, 0.952, 0.938, 0.885, 0.869, 0.773, 0.758, 0.326, 0.875, 0.583, 0.847, 0.684, 0.624, 0.708, 0.92, 0.91, 0.844, 0.906, 0.937, 0.671, 0.865, 0.769, 0.494, 0.473, 0.91, 0.869, 0.878, 0.9, 0.912, 0.877, 0.808, 0.752, 0.628, 0.54, 0.836, 0.329, 0.616, 0.495, 0.612, 0.94, 0.926, 0.968, 0.932, 0.95, 0.936, 0.851, 0.88, 0.884, 0.839, 0.886, 0.769, 0.72, 0.519, 0.748, 0.594, 0.689, 0.584, 0.474, 0.692, 0.518, 0.662, 0.843, 0.832, 0.786, 0.833, 0.885, 0.737, 0.781, 0.739, 0.762, 0.691, 0.447, 0.844, 0.464, 0.885, 0.739, 0.791, 0.845, 0.776, 0.876, 0.803, 0.94, 0.773, 0.592, 0.68, 0.548, 0.589, 0.491, 0.754, 0.82, 0.594, 0.843, 0.74, 0.913, 0.859, 0.813, 0.804, 0.653, 0.552, 0.667, 0.821, 0.746, 0.596, 0.803, 0.727, 0.858, 0.667, 0.8, 0.58, 0.614, 0.856, 0.819, 0.623, 0.481, 0.734, 0.743, 0.482, 0.515, 0.373, 0.846, 0.741, 0.493, 0.768, 0.743, 0.622, 0.504, 0.815, 0.573, 0.45, 0.769, 0.437, 0.936, 0.877, 0.908, 0.912, 0.914, 0.871, 0.681, 0.943, 0.92, 0.784, 0.95, 0.913, 0.924, 0.883, 0.884, 0.819, 0.772, 0.803, 0.244, 0.747, 0.757, 0.908, 0.829, 0.671, 0.906, 0.9, 0.889, 0.505, 0.761, 0.929, 0.715, 0.826, 0.706, 0.926, 0.84, 0.826, 0.87, 0.638, 0.939, 0.562, 0.825, 0.89, 0.626, 0.473, 0.432, 0.918, 0.921, 0.919, 0.903, 0.822, 0.95, 0.918, 0.826, 0.604, 0.835, 0.861, 0.825, 0.853, 0.683, 0.961, 0.931, 0.874, 0.677, 0.908, 0.945, 0.337, 0.817, 0.907, 0.507, 0.925, 0.876, 0.912, 0.915, 0.826, 0.906, 0.81, 0.917, 0.828, 0.919, 0.895, 0.637, 0.458, 0.412, 0.913, 0.903, 0.898, 0.883, 0.666, 0.801, 0.847, 0.911, 0.957, 0.898, 0.97, 0.938, 0.786, 0.754, 0.907, 0.916, 0.935, 0.695, 0.466, 0.914, 0.813, 0.916, 0.923, 0.911, 0.772, 0.398, 0.752, 0.659, 0.954, 0.873, 0.355, 0.932, 0.926, 0.936, 0.923, 0.916, 0.872, 0.89, 0.84, 0.43, 0.852, 0.89, 0.764, 0.893, 0.89, 0.865, 0.924, 0.817, 0.685, 0.587, 0.918, 0.929, 0.901, 0.933, 0.892, 0.895, 0.808, 0.79, 0.426, 0.893, 0.916, 0.756, 0.879, 0.787, 0.935, 0.919, 0.912, 0.791, 0.529, 0.847, 0.737, 0.827, 0.804, 0.918, 0.914, 0.922, 0.936, 0.858, 0.912, 0.928, 0.933, 0.948, 0.945, 0.864, 0.832, 0.911, 0.838, 0.822, 0.933, 0.905, 0.865, 0.762, 0.896, 0.802, 0.656, 0.891, 0.642, 0.89, 0.662, 0.77, 0.706, 0.587, 0.892, 0.77, 0.919, 0.958, 0.915, 0.908, 0.809, 0.876, 0.931, 0.925, 0.848, 0.859, 0.804, 0.67, 0.936, 0.896, 0.905, 0.805, 0.639, 0.871, 0.901, 0.815, 0.661, 0.754, 0.893, 0.916, 0.906, 0.886, 0.812, 0.911, 0.866, 0.87, 0.761, 0.682, 0.5, 0.472, 0.484, 0.432, 0.617, 0.553, 0.922, 0.929, 0.902, 0.89, 0.803, 0.833, 0.768, 0.809, 0.804, 0.798, 0.838, 0.494, 0.931, 0.923, 0.964, 0.944, 0.908, 0.874, 0.928, 0.894, 0.854, 0.851, 0.891, 0.884, 0.879, 0.819, 0.93, 0.919, 0.832, 0.836, 0.761, 0.81, 0.777, 0.51, 0.491, 0.414, 0.496, 0.447, 0.889, 0.766, 0.882, 0.926, 0.736, 0.92, 0.912, 0.953, 0.894, 0.893, 0.802, 0.405, 0.938, 0.826, 0.937, 0.906, 0.918, 0.91, 0.89, 0.77, 0.434, 0.883, 0.776, 0.522, 0.913, 0.408, 0.844, 0.92, 0.91, 0.842, 0.85, 0.921, 0.92, 0.858, 0.912, 0.726, 0.644, 0.551, 0.908, 0.789, 0.814, 0.874, 0.865, 0.909, 0.791, 0.853, 0.716, 0.788, 0.622, 0.373, 0.599, 0.604, 0.907, 0.888, 0.899, 0.953, 0.948, 0.937, 0.804, 0.836, 0.815, 0.794, 0.574, 0.309, 0.824, 0.839, 0.892, 0.771, 0.593, 0.829, 0.794, 0.763, 0.774, 0.525, 0.829, 0.639, 0.901, 0.682, 0.896, 0.761, 0.652, 0.519, 0.473, 0.88, 0.724, 0.866, 0.851, 0.456, 0.909, 0.785, 0.689, 0.631, 0.853, 0.729, 0.791, 0.89, 0.679, 0.592, 0.406, 0.323, 0.92, 0.869, 0.869, 0.747, 0.832, 0.755, 0.616, 0.901, 0.768, 0.797, 0.771, 0.817, 0.86, 0.681, 0.9, 0.522, 0.895, 0.821, 0.755, 0.665, 0.586, 0.796, 0.643, 0.866, 0.65, 0.861, 0.921, 0.664, 0.65, 0.779, 0.757, 0.653, 0.615, 0.841, 0.884, 0.853, 0.821, 0.677, 0.789, 0.792, 0.792, 0.706, 0.899, 0.74, 0.869, 0.856, 0.756, 0.936, 0.781, 0.767, 0.771, 0.633, 0.724, 0.486, 0.945, 0.833, 0.854, 0.872, 0.903, 0.895, 0.862, 0.735, 0.631, 0.594, 0.588, 0.509, 0.503, 0.517, 0.638, 0.575, 0.529, 0.928, 0.866, 0.913, 0.889, 0.876, 0.936, 0.909, 0.865, 0.892, 0.775, 0.791, 0.81, 0.924, 0.857, 0.875, 0.876, 0.919, 0.941, 0.889, 0.784, 0.739, 0.772, 0.664, 0.865, 0.869, 0.8, 0.924, 0.874, 0.864, 0.922, 0.884, 0.83, 0.64, 0.651, 0.5, 0.517, 0.48, 0.855, 0.896, 0.805, 0.778, 0.711, 0.843, 0.859, 0.823, 0.871, 0.841, 0.86, 0.73, 0.908, 0.94, 0.91, 0.87, 0.89, 0.871, 0.887, 0.897, 0.936, 0.925, 0.789, 0.643, 0.845, 0.879, 0.852, 0.948, 0.922, 0.932, 0.901, 0.889, 0.663, 0.399, 0.845, 0.568, 0.765, 0.557, 0.926, 0.915, 0.956, 0.943, 0.727, 0.941, 0.949, 0.939, 0.928, 0.888, 0.772, 0.489, 0.932, 0.943, 0.944, 0.954, 0.949, 0.924, 0.927, 0.81, 0.752, 0.368, 0.902, 0.741, 0.944, 0.915, 0.874, 0.897, 0.961, 0.93, 0.751, 0.964, 0.935, 0.679, 0.944, 0.873, 0.669, 0.594, 0.96, 0.873, 0.829, 0.911, 0.918, 0.94, 0.919, 0.847, 0.776, 0.558, 0.716, 0.329, 0.612, 0.6, 0.948, 0.921, 0.872, 0.942, 0.936, 0.966, 0.947, 0.638, 0.697, 0.589, 0.876, 0.702, 0.921, 0.892, 0.673, 0.876, 0.88, 0.812, 0.701, 0.79, 0.928, 0.72, 0.826, 0.828, 0.951, 0.957, 0.929, 0.909, 0.915, 0.93, 0.916, 0.9, 0.902, 0.858, 0.924, 0.754, 0.93, 0.933, 0.926, 0.944, 0.6, 0.937, 0.92, 0.957, 0.817, 0.869, 0.911, 0.918, 0.926, 0.922, 0.895, 0.948, 0.915, 0.924, 0.839, 0.895, 0.841, 0.597, 0.832, 0.746, 0.782, 0.615, 0.955, 0.936, 0.911, 0.884, 0.856, 0.809, 0.82, 0.898, 0.825, 0.757, 0.819, 0.517, 0.946, 0.946, 0.848, 0.933, 0.936, 0.945, 0.923, 0.928, 0.924, 0.893, 0.915, 0.926, 0.909, 0.885, 0.936, 0.955, 0.857, 0.922, 0.92, 0.909, 0.871, 0.882, 0.76, 0.699, 0.693, 0.606, 0.906, 0.948, 0.898, 0.91, 0.614, 0.931, 0.944, 0.93, 0.951, 0.857, 0.917, 0.385, 0.92, 0.904, 0.953, 0.944, 0.842, 0.931, 0.914, 0.841, 0.545, 0.932, 0.776, 0.569, 0.913, 0.547, 0.886, 0.96, 0.953, 0.951, 0.882, 0.953, 0.934, 0.892, 0.945, 0.756, 0.831, 0.587, 0.897, 0.936, 0.908, 0.897, 0.907, 0.903, 0.885, 0.92, 0.885, 0.74, 0.706, 0.335, 0.736, 0.473, 0.944, 0.879, 0.907, 0.947, 0.937, 0.923, 0.879, 0.617, 0.76, 0.636, 0.875, 0.574, 0.884, 0.802, 0.795, 0.875, 0.541, 0.828, 0.642, 0.651, 0.543, 0.648, 0.609, 0.595, 0.887, 0.892, 0.955, 0.961, 0.866, 0.89, 0.96, 0.905, 0.887, 0.866, 0.704, 0.526, 0.806, 0.584, 0.951, 0.935, 0.958, 0.929, 0.938, 0.992, 0.746, 0.868, 0.735, 0.656, 0.554, 0.425, 0.662, 0.523, 0.848, 0.507, 0.226, 0.746, 0.428, 0.753, 0.681, 0.708, 0.832, 0.637, 0.968, 0.92, 0.935, 0.947, 0.847, 0.893, 0.944, 0.823, 0.638, 0.911, 0.496, 0.357, 0.704, 0.475, 0.945, 0.882, 0.924, 0.915, 0.933, 0.955, 0.728, 0.9, 0.823, 0.743, 0.655, 0.593, 0.794, 0.837, 0.887, 0.483, 0.627, 0.853, 0.862, 0.743, 0.721, 0.829, 0.886, 0.7, 0.955, 0.956, 0.932, 0.899, 0.908, 0.916, 0.848, 0.898, 0.916, 0.715, 0.61, 0.461, 0.474, 0.369, 0.421, 0.402, 0.499, 0.366, 0.301, 0.523, 0.422, 0.442, 0.942, 0.847, 0.684, 0.883, 0.77, 0.394, 0.702, 0.511, 0.503, 0.181, 0.117, 0.933, 0.859, 0.876, 0.815, 0.676, 0.944, 0.764, 0.836, 0.858, 0.906, 0.961, 0.886, 0.816, 0.735, 0.91, 0.591, 0.878, 0.917, 0.861, 0.909, 0.855, 0.799, 0.421, 0.288, 0.937, 0.912, 0.828, 0.72, 0.512, 0.403, 0.433, 0.887, 0.904, 0.875, 0.85, 0.801, 0.867, 0.728, 0.646, 0.778, 0.748, 0.813, 0.72, 0.6, 0.416, 0.474, 0.433, 0.571, 0.533, 0.347, 0.266, 0.239, 0.241, 0.178, 0.17, 0.142, 0.136, 0.121, 0.11, 0.099, 0.089, 0.075, 0.059, 0.048, 0.047, 0.041, 0.036, 0.031, 0.031, 0.029, 0.027, 0.023, 0.021, 0.019, 0.017, 0.016, 0.014, 0.012, 0.011, 0.01, 0.009, 0.008, 0.007, 0.006, 0.005, 0.005, 0.004, 0.004, 0.003, 0.003, 0.002, 0.002, 0.002, 0.002, 0.001, 0.001, 0.001, 0.001, 0.001, 0, 0, 0, 0, 0, 0, 0, 0];
+const BAKED_ID = ''; // 'HTML로 저장'한 시각. 다르면 브라우저 저장본 대신 이 파일의 기본 데이터를 씀
+const DEFAULT = {
+ "parts": [
+  {
+   "name": "전주",
+   "start": 0,
+   "end": 11.8
+  },
+  {
+   "name": "1절",
+   "start": 11.8,
+   "end": 46.7
+  },
+  {
+   "name": "연결 1",
+   "start": 46.7,
+   "end": 59.8
+  },
+  {
+   "name": "후렴 1",
+   "start": 59.8,
+   "end": 79.5
+  },
+  {
+   "name": "간주",
+   "start": 79.5,
+   "end": 90.0
+  },
+  {
+   "name": "2절",
+   "start": 90.0,
+   "end": 102.7
+  },
+  {
+   "name": "연결 2",
+   "start": 102.7,
+   "end": 115.8
+  },
+  {
+   "name": "후렴 2",
+   "start": 115.8,
+   "end": 136.9
+  },
+  {
+   "name": "간주 2",
+   "start": 136.9,
+   "end": 154.4
+  },
+  {
+   "name": "후렴 3",
+   "start": 154.4,
+   "end": 194.4
+  },
+  {
+   "name": "엔딩",
+   "start": 194.4,
+   "end": 225.1
+  }
+ ],
+ "lines": [
+  {
+   "t": 11.8,
+   "e": 16.4,
+   "text": "그 얘기 들어봤니"
+  },
+  {
+   "t": 16.4,
+   "e": 19.9,
+   "text": "우릴 위해 구주가 나셨대"
+  },
+  {
+   "t": 19.9,
+   "e": 23.1,
+   "text": "베들레헴 작은 마구간에서"
+  },
+  {
+   "t": 23.1,
+   "e": 25.3,
+   "text": "오늘 태어나셨대"
+  },
+  {
+   "t": 25.3,
+   "e": 28.0,
+   "text": "아주 오래전부터"
+  },
+  {
+   "t": 28.0,
+   "e": 31.1,
+   "text": "예언되었던 그 일"
+  },
+  {
+   "t": 31.1,
+   "e": 34.7,
+   "text": "오늘 바로 이뤄진 거야"
+  },
+  {
+   "t": 34.7,
+   "e": 37.7,
+   "text": "그 얘기 들어봤니"
+  },
+  {
+   "t": 37.7,
+   "e": 41.3,
+   "text": "우릴 위해 구주가 나셨대"
+  },
+  {
+   "t": 41.3,
+   "e": 44.4,
+   "text": "베들레헴 작은 마구간에서",
+   "chk": true
+  },
+  {
+   "t": 44.4,
+   "e": 46.7,
+   "text": "오늘 태어나셨대"
+  },
+  {
+   "t": 46.7,
+   "e": 52.3,
+   "text": "우릴 죄악 가운데 버려둘 수 없어서",
+   "chk": true
+  },
+  {
+   "t": 52.3,
+   "e": 59.8,
+   "text": "하나님의 사랑이 여기 내려오셨대"
+  },
+  {
+   "t": 59.8,
+   "e": 65.2,
+   "text": "하늘에는 영광이요"
+  },
+  {
+   "t": 65.2,
+   "e": 70.5,
+   "text": "땅에는 평화로다"
+  },
+  {
+   "t": 70.5,
+   "e": 76.0,
+   "text": "모든 사람 기뻐할 큰 기쁨의 소식"
+  },
+  {
+   "t": 76.0,
+   "e": 79.5,
+   "text": "그 얘기 들어봤니"
+  },
+  {
+   "t": 90.0,
+   "e": 93.8,
+   "text": "그 얘기 들어봤니"
+  },
+  {
+   "t": 93.8,
+   "e": 97.3,
+   "text": "우릴 위해 구주가 나셨대"
+  },
+  {
+   "t": 97.5,
+   "e": 100.4,
+   "text": "베들레헴 작은 마구간에서",
+   "chk": true
+  },
+  {
+   "t": 100.4,
+   "e": 102.7,
+   "text": "오늘 태어나셨대"
+  },
+  {
+   "t": 102.7,
+   "e": 108.3,
+   "text": "우릴 죄악 가운데 버려둘 수 없어서",
+   "chk": true
+  },
+  {
+   "t": 108.3,
+   "e": 115.8,
+   "text": "하나님의 사랑이 여기 내려오셨대"
+  },
+  {
+   "t": 119.8,
+   "e": 121.9,
+   "text": "하늘에는 영광이요"
+  },
+  {
+   "t": 122.6,
+   "e": 125.8,
+   "text": "땅에는 평화로다",
+   "chk": true
+  },
+  {
+   "t": 127.7,
+   "e": 133.3,
+   "text": "모든 사람 기뻐할 큰 기쁨의 소식"
+  },
+  {
+   "t": 133.3,
+   "e": 136.9,
+   "text": "그 얘기 들어봤니"
+  },
+  {
+   "t": 154.4,
+   "e": 157.2,
+   "text": "하늘에는 영광이요"
+  },
+  {
+   "t": 157.2,
+   "e": 162.4,
+   "text": "땅에는 평화로다"
+  },
+  {
+   "t": 162.4,
+   "e": 167.9,
+   "text": "모든 사람 기뻐할 큰 기쁨의 소식"
+  },
+  {
+   "t": 168.2,
+   "e": 172.7,
+   "text": "그 얘기 들어봤니"
+  },
+  {
+   "t": 173.2,
+   "e": 178.5,
+   "text": "하늘에는 영광이요"
+  },
+  {
+   "t": 178.5,
+   "e": 183.8,
+   "text": "땅에는 평화로다"
+  },
+  {
+   "t": 183.8,
+   "e": 189.3,
+   "text": "모든 사람 기뻐할 큰 기쁨의 소식"
+  },
+  {
+   "t": 189.3,
+   "e": 194.4,
+   "text": "그 얘기 들어봤니"
+  },
+  {
+   "t": 194.4,
+   "e": 199.8,
+   "text": "그 얘기 들어봤니"
+  },
+  {
+   "t": 200.3,
+   "e": 204.4,
+   "text": "그 얘기 들어봤니"
+  },
+  {
+   "t": 205.6,
+   "e": 209.4,
+   "text": "그 얘기 들어볼래?"
+  }
+ ]
+};
+const STORE_KEY = 'noel-story-v1';
+
+// ===== 상태 =====
+const $ = s => document.querySelector(s);
+const audio = $('#audio'), canvas = $('#wave'), g = canvas.getContext('2d');
+let data = loadData();
+let A = null, B = null, loop = false, waiting = false, prevT = 0;
+let activePart = -1, curLine = -1, editMode = false, selLine = 0;
+let lineEls = [];
+
+function loadData() {
+  try { const d = JSON.parse(localStorage.getItem(STORE_KEY)); if (d && d.lines && d.parts && (d.baked || '') === BAKED_ID) return d; } catch {}
+  return JSON.parse(JSON.stringify(DEFAULT));
+}
+function save() { data.baked = BAKED_ID; try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); } catch {} }
+function sortLines() { data.lines.sort((a, b) => a.t - b.t); }
+
+// ===== 시간 =====
+function fmt(t) {
+  if (t == null || isNaN(t)) return '';
+  const m = Math.floor(t / 60), s = t - m * 60;
+  return m + ':' + (s < 10 ? '0' : '') + s.toFixed(1);
+}
+function parseTime(str) {
+  str = (str || '').trim(); if (!str) return null;
+  const p = str.split(':').map(Number); if (p.some(isNaN)) return null;
+  return p.length === 2 ? p[0] * 60 + p[1] : p[0];
+}
+const dur = () => audio.duration || 225.12;
+const lineEnd = i => { const l = data.lines[i]; return l.e != null ? l.e : (data.lines[i + 1] ? data.lines[i + 1].t : dur()); };
+
+// ===== 음원 없을 때 =====
+audio.addEventListener('error', () => { $('#missing').style.display = 'block'; });
+$('#pickBtn').onclick = () => $('#fileInput').click();
+$('#fileInput').onchange = () => {
+  const f = $('#fileInput').files[0]; if (!f) return;
+  audio.src = URL.createObjectURL(f); $('#missing').style.display = 'none';
+};
+
+// ===== 파형 =====
+function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function draw() {
+  const dpr = devicePixelRatio || 1, w = canvas.clientWidth, h = canvas.clientHeight;
+  if (canvas.width !== w * dpr || canvas.height !== h * dpr) { canvas.width = w * dpr; canvas.height = h * dpr; }
+  g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+  const D = dur(), x = t => t / D * w, cur = x(audio.currentTime || 0);
+  const top = 18, mid = top + (h - top) / 2;
+
+  // 파트 라벨 띠
+  g.font = '11px system-ui, sans-serif'; g.textBaseline = 'middle';
+  data.parts.forEach((p, i) => {
+    g.fillStyle = i === activePart ? css('--accent') : (i % 2 ? css('--line') : css('--wave'));
+    g.globalAlpha = i === activePart ? 1 : .6;
+    g.fillRect(x(p.start) + 1, 0, Math.max(1, x(p.end) - x(p.start) - 2), 14);
+    g.globalAlpha = 1;
+    g.fillStyle = i === activePart ? '#fff' : css('--text');
+    const label = p.name, room = x(p.end) - x(p.start) - 6;
+    if (room > 14) { g.save(); g.beginPath(); g.rect(x(p.start), 0, x(p.end) - x(p.start), 14); g.clip(); g.fillText(label, x(p.start) + 4, 7.5); g.restore(); }
+  });
+  // A~B
+  if (A != null && B != null) { g.fillStyle = css('--accent-soft'); g.fillRect(x(A), top, x(B) - x(A), h - top); }
+  // 파형
+  const step = 3, n = Math.floor(w / step);
+  for (let i = 0; i < n; i++) {
+    const p = PEAKS.length ? PEAKS[Math.floor(i / n * PEAKS.length)] : 0;
+    const bh = Math.max(1, p * ((h - top) / 2 - 4));
+    g.fillStyle = i * step < cur ? css('--played') : css('--wave');
+    g.fillRect(i * step, mid - bh, 2, bh * 2);
+  }
+  // A/B 선
+  [[A, 'A'], [B, 'B']].forEach(([t, lb]) => {
+    if (t == null) return;
+    g.fillStyle = css('--accent'); g.fillRect(x(t) - 1, top, 2, h - top);
+    g.font = 'bold 11px sans-serif'; g.textBaseline = 'alphabetic'; g.fillText(lb, x(t) + 3, h - 4);
+  });
+  g.fillStyle = css('--text'); g.fillRect(cur - 1, top, 2, h - top);
+}
+addEventListener('resize', draw);
+
+let dragStart = null, dragged = false;
+const ww = $('#waveWrap');
+const timeAt = ev => { const r = ww.getBoundingClientRect(); return Math.min(Math.max((ev.clientX - r.left) / r.width, 0), 1) * dur(); };
+ww.addEventListener('pointerdown', ev => { ww.setPointerCapture(ev.pointerId); dragStart = timeAt(ev); dragged = false; });
+ww.addEventListener('pointermove', ev => {
+  if (dragStart == null) return;
+  const t = timeAt(ev);
+  if (Math.abs(t - dragStart) > dur() * 0.004) dragged = true;
+  if (dragged) setAB(Math.min(dragStart, t), Math.max(dragStart, t), -1);
+});
+ww.addEventListener('pointerup', ev => {
+  if (dragStart == null) return;
+  if (dragged) seek(A); else seek(timeAt(ev));
+  dragStart = null;
+});
+
+// ===== 재생 =====
+function seek(t) { audio.currentTime = Math.min(Math.max(t, 0), dur()); prevT = audio.currentTime; } // 직접 옮긴 건 '파트 끝 지나감'으로 치지 않음
+function togglePlay() { audio.paused ? audio.play() : audio.pause(); }
+function playFrom(t) { waiting = false; seek(t); audio.play(); }
+function restartSection() { if (A != null) playFrom(Math.max(0, A - +$('#preroll').value)); else audio.play(); }
+audio.onplay = audio.onpause = () => { $('#playBtn').classList.toggle('playing', !audio.paused); $('#playBtn').setAttribute('aria-label', audio.paused ? '재생' : '일시정지'); };
+audio.addEventListener('play', () => { waiting = false; });
+$('#playBtn').onclick = togglePlay;
+$('#back5').onclick = () => seek(audio.currentTime - 5);
+$('#fwd5').onclick = () => seek(audio.currentTime + 5);
+
+function setLoop(v) { loop = v; $('#loopBtn').classList.toggle('on', v); $('#loopBtn').setAttribute('aria-pressed', v); }
+$('#loopBtn').onclick = () => setLoop(!loop);
+
+function setAB(a, b, partIdx) {
+  A = a; B = b; activePart = partIdx;
+  $('#aInput').value = fmt(A); $('#bInput').value = fmt(B);
+  renderParts(); markLoopLines(); draw();
+}
+$('#setA').onclick = () => setAB(audio.currentTime, B != null && B > audio.currentTime ? B : null, -1);
+$('#setB').onclick = () => setAB(A != null && A < audio.currentTime ? A : 0, audio.currentTime, -1);
+$('#clearAB').onclick = () => setAB(null, null, -1);
+$('#aInput').onchange = () => setAB(parseTime($('#aInput').value), B, -1);
+$('#bInput').onchange = () => setAB(A, parseTime($('#bInput').value), -1);
+
+function setRate(r) {
+  r = Math.round(Math.min(Math.max(+r, 0.5), 1.5) * 100) / 100;
+  audio.playbackRate = r; audio.preservesPitch = true;
+  $('#rate').value = r; $('#rateLabel').textContent = r.toFixed(2) + 'x';
+  document.querySelectorAll('[data-rate]').forEach(b => b.classList.toggle('on', +b.dataset.rate === r));
+}
+$('#rate').oninput = () => setRate($('#rate').value);
+document.querySelectorAll('[data-rate]').forEach(b => b.onclick = () => setRate(b.dataset.rate));
+
+// 음량 (이 브라우저에 기억)
+let lastVol = 1;
+function showVolume() {
+  const off = audio.muted || audio.volume === 0;
+  $('#vol').value = audio.muted ? 0 : audio.volume;
+  $('#volLabel').textContent = off ? '0%' : Math.round(audio.volume * 100) + '%';
+  $('#muteBtn').classList.toggle('muted', off);
+  $('#muteBtn').setAttribute('aria-label', off ? '소리 켜기' : '음소거');
+}
+function setVolume(v) {
+  v = Math.round(Math.min(Math.max(+v, 0), 1) * 100) / 100;
+  audio.volume = v; audio.muted = false;
+  if (v > 0) lastVol = v;
+  try { localStorage.setItem('practice-volume', v); } catch {}
+  showVolume();
+}
+function toggleMute() {
+  if (audio.volume === 0) return setVolume(lastVol || 1);
+  audio.muted = !audio.muted; showVolume();
+}
+$('#vol').oninput = () => setVolume($('#vol').value);
+$('#muteBtn').onclick = toggleMute;
+try { const v = localStorage.getItem('practice-volume'); if (v != null) { audio.volume = +v; if (+v > 0) lastVol = +v; } } catch {}
+showVolume();
+
+// ===== 가사 =====
+function renderLyrics() {
+  const box = $('#lyricsBox'); box.innerHTML = ''; lineEls = [];
+  sortLines();
+  // 파트 제목 (가사 없는 파트는 ♪ 표시)
+  const parts = data.parts.slice().sort((a, b) => a.start - b.start);
+  let pi = 0;
+  const emitPartsUntil = t => {
+    while (pi < parts.length && parts[pi].start - 0.3 <= t) {
+      const p = parts[pi++];
+      const h = document.createElement('div'); h.className = 'partHead'; h.textContent = p.name;
+      box.appendChild(h);
+      if (!data.lines.some(l => l.t >= p.start - 0.3 && l.t < p.end)) {
+        const n = document.createElement('div'); n.className = 'gapNote'; n.textContent = '♪ ♪ ♪';
+        n.onclick = () => playFrom(p.start); n.style.cursor = 'pointer';
+        box.appendChild(n);
+      }
+    }
+  };
+  data.lines.forEach((l, i) => {
+    if (!editMode) emitPartsUntil(l.t);
+    const el = document.createElement('div'); el.className = 'lyric';
+    if (editMode) {
+      el.innerHTML = `<input class="tIn time" type="text"><input class="txtIn" type="text">
+        <button class="small now" title="지금 시각을 시작으로">⏱</button>
+        <button class="small play" title="여기부터 재생">▶</button>
+        <button class="small del" title="줄 삭제">✕</button>`;
+      const tIn = el.querySelector('.tIn'), xIn = el.querySelector('.txtIn');
+      tIn.value = fmt(l.t); xIn.value = l.text;
+      tIn.onchange = () => { const t = parseTime(tIn.value); if (t != null) { setLineStart(i, t); } };
+      xIn.onchange = () => { l.text = xIn.value; delete l.chk; save(); };
+      el.querySelector('.now').onclick = () => setLineStart(i, audio.currentTime);
+      el.querySelector('.play').onclick = () => playFrom(Math.max(0, l.t - 1));
+      el.querySelector('.del').onclick = () => { data.lines.splice(i, 1); save(); renderLyrics(); };
+      el.addEventListener('focusin', () => { selLine = i; highlightSel(); });
+      el.addEventListener('click', () => { selLine = i; highlightSel(); });
+    } else {
+      el.innerHTML = `<span class="lt time"></span><span class="txt"></span>${l.chk ? '<span class="chk" title="시작 시간을 추정한 줄이에요. 들어보고 어긋나면 수정 모드에서 맞춰 주세요.">확인</span>' : ''}<button class="loopBtn" title="이 줄만 반복" aria-label="이 줄만 반복"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg></button>`;
+      el.querySelector('.lt').textContent = fmt(l.t).replace(/\.\d$/, '');
+      el.querySelector('.txt').textContent = l.text;
+      el.onclick = () => playFrom(Math.max(0, l.t - +$('#preroll').value));
+      el.querySelector('.loopBtn').onclick = ev => { ev.stopPropagation(); loopLine(i); };
+    }
+    box.appendChild(el); lineEls.push(el);
+  });
+  if (!editMode) emitPartsUntil(Infinity);
+  curLine = -1;
+  if (editMode) highlightSel(); else markLoopLines();
+}
+function highlightSel() { lineEls.forEach((el, i) => el.classList.toggle('sel', i === selLine)); }
+function setLineStart(i, t) {
+  const l = data.lines[i]; const len = lineEnd(i) - l.t;
+  l.t = Math.round(t * 10) / 10;
+  if (l.e != null) l.e = Math.round((l.t + Math.max(len, 0.5)) * 10) / 10;
+  const prev = data.lines[i - 1]; if (prev && prev.e != null && prev.e > l.t) prev.e = l.t;
+  save(); renderLyrics();
+}
+function loopLine(i) {
+  if (i < 0 || i >= data.lines.length) return;
+  setLoop(true);
+  setAB(data.lines[i].t, lineEnd(i) + 0.3, -1);
+  restartSection();
+}
+function markLoopLines() {
+  if (editMode) return;
+  lineEls.forEach((el, i) => {
+    const l = data.lines[i];
+    el.classList.toggle('inloop', A != null && B != null && l.t >= A - 0.05 && lineEnd(i) <= B + 0.35);
+  });
+}
+function lineIndexAt(t) {
+  let idx = -1;
+  for (let i = 0; i < data.lines.length; i++) if (data.lines[i].t <= t + 0.05) idx = i;
+  return idx;
+}
+function updateLyrics() {
+  if (editMode) return;
+  const t = audio.currentTime;
+  const idx = lineIndexAt(t);
+  if (idx !== curLine) {
+    lineEls.forEach((el, i) => { el.classList.toggle('past', i < idx); el.classList.remove('now'); });
+    curLine = idx;
+    const el = lineEls[idx] || lineEls[0];
+    if (el) { const box = $('#lyricsBox'); box.scrollTop = el.offsetTop - box.clientHeight / 2 + el.clientHeight / 2; }
+  }
+  if (idx >= 0) {
+    const el = lineEls[idx], l = data.lines[idx], end = lineEnd(idx);
+    const p = Math.min(Math.max((t - l.t) / (end - l.t), 0), 1);
+    const singing = t <= end + 0.6;
+    el.classList.toggle('now', singing);
+    el.classList.toggle('past', !singing);
+    el.style.setProperty('--p', (p * 100).toFixed(1) + '%');
+  }
+}
+$('#editBtn').onclick = () => {
+  editMode = !editMode;
+  $('#cols').classList.toggle('edit', editMode);
+  $('#editBtn').textContent = editMode ? '✔ 수정 끝내기' : '✏️ 가사·타이밍 수정';
+  $('#editBtn').classList.toggle('on', editMode);
+  if (editMode) selLine = Math.max(0, lineIndexAt(audio.currentTime));
+  renderLyrics();
+};
+$('#addLine').onclick = () => {
+  data.lines.push({ t: Math.round(audio.currentTime * 10) / 10, text: '' });
+  save(); renderLyrics();
+};
+$('#resetBtn').onclick = () => {
+  if (!confirm('수정한 가사·타이밍·구간을 모두 지우고 처음 상태로 되돌릴까요?')) return;
+  data = JSON.parse(JSON.stringify(DEFAULT)); save(); renderLyrics(); renderParts(); draw();
+};
+
+// ===== 파트 =====
+function renderParts() {
+  const box = $('#parts'); box.innerHTML = '';
+  data.parts.forEach((p, i) => {
+    const el = document.createElement('div'); el.className = 'part item' + (i === activePart ? ' active' : '');
+    el.innerHTML = `<span class="num">${i < 9 ? i + 1 : '·'}</span><span class="nm" title="더블클릭해서 이름 바꾸기"></span>
+      <span class="time muted pt">${fmt(p.start).replace(/\.\d$/, '')}–${fmt(p.end).replace(/\.\d$/, '')}</span>
+      <span class="acts"><button class="small ghost up" title="현재 A~B로 덮어쓰기">⟳</button><button class="small ghost danger del" title="삭제">✕</button></span>`;
+    el.querySelector('.nm').textContent = p.name;
+    el.onclick = () => playPart(i);
+    el.querySelector('.nm').ondblclick = ev => {
+      ev.stopPropagation();
+      const nm = prompt('파트 이름', p.name); if (nm) { p.name = nm.trim(); save(); renderParts(); renderLyrics(); draw(); }
+    };
+    el.querySelector('.up').onclick = ev => {
+      ev.stopPropagation();
+      if (A == null || B == null) return alert('먼저 A~B 구간을 지정하세요.');
+      p.start = A; p.end = B; save(); activePart = i; renderParts(); renderLyrics(); draw();
+    };
+    el.querySelector('.del').onclick = ev => {
+      ev.stopPropagation();
+      if (!confirm(`"${p.name}" 구간을 삭제할까요?`)) return;
+      data.parts.splice(i, 1); if (activePart === i) activePart = -1; else if (activePart > i) activePart--;
+      save(); renderParts(); renderLyrics(); draw();
+    };
+    box.appendChild(el);
+  });
+}
+function playPart(i) {
+  const p = data.parts[i]; if (!p) return;
+  setAB(p.start, p.end, i); restartSection();
+}
+$('#addPart').onclick = () => {
+  if (A == null || B == null) return alert('먼저 A~B 구간을 지정하세요. (파형 드래그 또는 가사 줄의 반복 버튼)');
+  const name = $('#partName').value.trim() || ('구간 ' + (data.parts.length + 1));
+  data.parts.push({ name, start: A, end: B });
+  data.parts.sort((a, b) => a.start - b.start);
+  activePart = data.parts.findIndex(p => p.start === A && p.end === B);
+  $('#partName').value = ''; save(); renderParts(); renderLyrics(); draw();
+};
+$('#partName').addEventListener('keydown', e => { if (e.key === 'Enter') $('#addPart').click(); });
+
+// ===== 내보내기 / 불러오기 =====
+$('#exportBtn').onclick = () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' }));
+  a.download = '그얘기들어봤니_가사구간.json'; a.click();
+};
+$('#importBtn').onclick = () => $('#importInput').click();
+$('#importInput').onchange = async () => {
+  const f = $('#importInput').files[0]; if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    if (!Array.isArray(d.lines) || !Array.isArray(d.parts)) throw 0;
+    data = d; save(); activePart = -1; renderLyrics(); renderParts(); draw();
+  } catch { alert('파일을 읽을 수 없습니다.'); }
+  $('#importInput').value = '';
+};
+// 지금 가사·구간을 기본값으로 넣은 HTML 파일을 새로 만듦
+$('#bakeBtn').onclick = () => {
+  const from = PAGE_SRC.indexOf('const BAKED_ID'), to = PAGE_SRC.indexOf('\nconst STORE_KEY');
+  if (from < 0 || to < 0) return alert('HTML을 만들 수 없습니다.');
+  const { baked, ...clean } = data;
+  const id = new Date().toISOString();
+  const json = JSON.stringify(clean, null, 1).replace(/</g, '\\u003c');
+  const html = PAGE_SRC.slice(0, from) + `const BAKED_ID = '${id}';\nconst DEFAULT = ${json};` + PAGE_SRC.slice(to);
+  saveHtml(html, '그얘기들어봤니_가사연습.html');
+};
+
+// HTML 저장: 저장 위치를 고를 수 있으면 고르게 하고, 다음부터는 지난번 저장한 폴더에서 바로 열림
+function saveDb(mode, fn) {
+  return new Promise((ok, no) => {
+    const r = indexedDB.open('practice-save', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('h');
+    r.onerror = () => no(r.error);
+    r.onsuccess = () => {
+      try {
+        const tx = r.result.transaction('h', mode), q = fn(tx.objectStore('h'));
+        tx.oncomplete = () => ok(q && q.result); tx.onerror = () => no(tx.error);
+      } catch (e) { no(e); }
+    };
+  });
+}
+async function saveHtml(html, name) {
+  if (window.showSaveFilePicker) {
+    let last = null;
+    try { last = await saveDb('readonly', s => s.get('last')); } catch {}
+    for (const startIn of last ? [last, 'downloads'] : ['downloads']) {
+      try {
+        const h = await showSaveFilePicker({ suggestedName: name, startIn, types: [{ description: 'HTML 파일', accept: { 'text/html': ['.html'] } }] });
+        const w = await h.createWritable(); await w.write(html); await w.close();
+        try { await saveDb('readwrite', s => s.put(h, 'last')); } catch {}
+        return;
+      } catch (e) { if (e.name === 'AbortError') return; }
+    }
+  }
+  // 위치를 고를 수 없는 브라우저는 다운로드 폴더로
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+  a.download = name; a.click();
+}
+
+// ===== 메인 루프 =====
+function tick() {
+  $('#clock').textContent = fmt(audio.currentTime) + ' / ' + fmt(dur());
+  if (loop && !audio.paused && !waiting && A != null && B != null && audio.currentTime >= B) {
+    const gap = +$('#gap').value;
+    if (gap > 0) { waiting = true; audio.pause(); setTimeout(() => { if (waiting) restartSection(); }, gap * 1000); }
+    else seek(Math.max(0, A - +$('#preroll').value));
+  }
+  // 반복을 끈 채 파트를 재생하면 파트 끝에서 한 번 멈춤 (다시 재생하면 다음 부분으로 이어짐)
+  else if (!loop && activePart >= 0 && !audio.paused && B != null && prevT < B && audio.currentTime >= B) { audio.pause(); seek(B); }
+  prevT = audio.currentTime;
+  updateLyrics(); draw();
+  requestAnimationFrame(tick);
+}
+
+// ===== 단축키 =====
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' && e.target.type !== 'range') return;
+  const k = e.key;
+  if (k === ' ') { e.preventDefault(); togglePlay(); }
+  else if (editMode && (k === 't' || k === 'T')) {
+    if (!data.lines[selLine]) return;
+    const next = selLine + 1;
+    setLineStart(selLine, audio.currentTime);
+    selLine = Math.min(next, data.lines.length - 1); highlightSel();
+    lineEls[selLine] && lineEls[selLine].scrollIntoView({ block: 'center' });
+  }
+  else if (k === 'a' || k === 'A') $('#setA').click();
+  else if (k === 'b' || k === 'B') $('#setB').click();
+  else if (k === 'l' || k === 'L') setLoop(!loop);
+  else if (k === 'r' || k === 'R') loopLine(Math.max(0, lineIndexAt(audio.currentTime)));
+  else if (k === 'm' || k === 'M') toggleMute();
+  else if (k === 'Enter') restartSection();
+  else if (k === 'ArrowUp' || k === 'ArrowDown') {
+    e.preventDefault();
+    const i = lineIndexAt(audio.currentTime);
+    let j = k === 'ArrowUp' ? (audio.currentTime - (data.lines[i] ? data.lines[i].t : 0) > 1.5 ? i : i - 1) : i + 1;
+    j = Math.min(Math.max(j, 0), data.lines.length - 1);
+    playFrom(data.lines[j].t);
+  }
+  else if (k === 'ArrowLeft') { e.preventDefault(); seek(audio.currentTime - 0.5); }
+  else if (k === 'ArrowRight') { e.preventDefault(); seek(audio.currentTime + 0.5); }
+  else if (k === ',') seek(audio.currentTime - 1);
+  else if (k === '.') seek(audio.currentTime + 1);
+  else if (k === '-') setRate(audio.playbackRate - 0.05);
+  else if (k === '=' || k === '+') setRate(audio.playbackRate + 0.05);
+  else if (/^[1-9]$/.test(k)) playPart(+k - 1);
+});
+
+renderLyrics(); renderParts(); draw();
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
