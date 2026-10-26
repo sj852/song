@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ko"><head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>성탄 연습</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
@@ -126,9 +126,6 @@
 
   @media (max-width: 600px) {
     .hide-sm { display: none; }
-    .transport { grid-template-columns: 1fr auto; }
-    .tcenter { grid-column: 1 / -1; order: -1; justify-content: center; }
-    .tools { gap: 12px; }
   }
 
   main { max-width: 1120px; }
@@ -188,7 +185,7 @@
   @media (hover: none) { .lyric .loopBtn { opacity: .55; } }
   .ico { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--soft); color: var(--muted); vertical-align: -4px; }
   .ico svg { width: 11px; height: 11px; }
-  .chk { font-size: 11px; color: var(--gold); border: 1px solid var(--gold); border-radius: 6px; padding: 0 5px; font-weight: 600; }
+  .chk { flex: none; white-space: nowrap; font-size: 11px; color: var(--gold); border: 1px solid var(--gold); border-radius: 6px; padding: 0 5px; font-weight: 600; }
   .gapNote { color: var(--faint); font-size: 16px; padding: 4px 12px; letter-spacing: .3em; }
   .gapNote.now { color: var(--gold); }
 
@@ -227,17 +224,91 @@
   .songTabs button:hover { background: rgba(255,255,255,.12); color: #fff; }
   .songTabs button.on, .songTabs button.on:hover { background: #fff; color: #1b2142; }
   @media (max-width: 600px) { .hero { flex-wrap: wrap; } .songTabs { margin-left: 0; width: 100%; } .songTabs button { flex: 1; } }
+
+  /* 모바일 전용 요소 (PC에서는 숨김) */
+  .mob, .sheet-only, #partChips, #sheetBack { display: none; }
+
+  /* ===== 모바일: 가사가 화면 전체 + 아래 고정 플레이어 + 설정 시트 ===== */
+  @media (max-width: 600px) {
+    main { padding: 0 16px calc(150px + env(safe-area-inset-bottom)); }
+    input[type=text], input[type=number] { font-size: 16px; } /* iOS 입력 시 확대 방지 */
+
+    /* 위: 곡 탭 + 파트 칩 */
+    .hero { position: sticky; top: 0; z-index: 20; gap: 8px; margin: 0 -16px 8px; padding: calc(10px + env(safe-area-inset-top)) 12px 10px; border-radius: 0 0 18px 18px; }
+    .hero .star, .hero .heroTitle { display: none; }
+    .songTabs button { min-height: 34px; }
+    /* 파트는 전부 한눈에 (4칸 격자) */
+    #partChips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; width: 100%; }
+    #partChips button { min-width: 0; min-height: 34px; padding: 4px 5px; border-radius: 9px; font-size: 12px; letter-spacing: -.03em;
+                        overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; background: rgba(255,255,255,.1); color: rgba(255,255,255,.82); }
+    #partChips button.on { background: #fff; color: #1b2142; }
+
+    /* 가사: 페이지 자체가 스크롤 */
+    .lyricsPanel { background: transparent; border: 0; box-shadow: none; padding: 0; }
+    .lyricsPanel .phead { display: none; }
+    .edit .lyricsPanel .phead { display: flex; padding: 8px 0 0; }
+    #lyricsBox { height: auto; min-height: 0; overflow: visible; padding: 0 0 35vh; }
+    .edit #lyricsBox { padding: 0; }
+    /* 가사는 작고 촘촘하게 */
+    .lyric { font-size: 16px; padding: 4px 6px; gap: 6px; border-radius: 10px; }
+    .lyric.now .txt { transform: scale(1.03); }
+    .lyric .lt { font-size: 11px; min-width: 28px; }
+    .lyric .loopBtn { width: 34px; height: 34px; opacity: .75; }
+    .lyric .loopBtn svg { width: 15px; height: 15px; }
+    .partHead { font-size: 11px; padding: 2px 9px; margin: 12px 0 4px 4px; }
+    .gapNote { font-size: 13px; padding: 2px 8px; }
+    #savePanel, .keysPanel { display: none; }
+
+    /* 아래 고정 플레이어 */
+    #player { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; margin: 0; padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+              border-width: 1px 0 0; border-radius: 20px 20px 0 0; box-shadow: 0 -6px 28px rgba(0,0,0,.14); }
+    #waveWrap { height: 52px; }
+    #player .hint { display: none; }
+    .transport { grid-template-columns: 1fr auto 1fr; gap: 8px; margin-top: 8px; }
+    .clock { font-size: 14px; line-height: 1.25; color: var(--text); }
+    .clock .sl { display: none; }
+    .clock .tot { display: block; font-size: 11px; font-weight: 500; color: var(--faint); }
+    .tcenter { gap: 8px; }
+    #playBtn { width: 56px; height: 56px; }
+    .tright { display: flex; gap: 6px; }
+    #loopBtn { width: 44px; height: 44px; padding: 0; border-radius: 50%; background: var(--soft); color: var(--muted); }
+    #loopBtn::before, #loopBtn .lbl { display: none; }
+    #loopBtn.on { background: var(--accent); color: var(--on-accent); }
+    #loopBtn .mob { display: block; }
+    #sheetBtn { display: inline-flex; }
+    #loopBtn svg, #sheetBtn svg { width: 20px; height: 20px; }
+
+    /* 설정 시트 (⚙ 버튼) */
+    .tools { display: none; }
+    body.sheet { overflow: hidden; }
+    body.sheet #sheetBack { display: block; position: fixed; inset: 0; z-index: 45; background: rgba(0,0,0,.42); }
+    body.sheet .tools { display: flex; flex-direction: column; align-items: stretch; gap: 18px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+                        max-height: 80vh; overflow-y: auto; margin: 0; padding: 0 16px calc(20px + env(safe-area-inset-bottom));
+                        background: var(--panel); border-top: 0; border-radius: 22px 22px 0 0; box-shadow: 0 -10px 40px rgba(0,0,0,.25); }
+    .sheet-only { display: flex; gap: 8px; }
+    .sheetHead { align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1; padding: 16px 0 4px; background: var(--panel); }
+    .tools .group { gap: 8px; }
+    .tools .label { width: 100%; font-size: 13px; }
+    .tools button.small { min-height: 40px; padding: 8px 14px; font-size: 14px; }
+    .abInput { flex: 1 1 64px; min-width: 0; }
+    .seg { flex: 1; }
+    .seg button { flex: 1; min-height: 38px; font-size: 14px; }
+    input#rate { flex: 1; }
+    details.more summary { padding: 10px 12px; font-size: 14px; }
+    .sheetActs button { flex: 1; min-height: 46px; }
+  }
 </style>
 </head>
 <body>
 <main>
   <header class="hero">
     <div class="star">★</div>
-    <div>
+    <div class="heroTitle">
       <h1 id="songTitle">성탄 연습</h1>
       <div class="sub" id="songSub">가사를 누르면 그 줄부터 재생돼요</div>
     </div>
     <nav class="songTabs" id="songTabs" aria-label="곡 선택"></nav>
+    <nav id="partChips" aria-label="파트 바로가기"></nav>
   </header>
 
   <div class="panel" id="missing">
@@ -246,19 +317,24 @@
     <input type="file" id="fileInput" accept="audio/*,.m4a" hidden="">
   </div>
 
-  <section class="panel">
+  <section class="panel" id="player">
+    <div id="sheetBack"></div>
     <div id="waveWrap"><canvas id="wave"></canvas></div>
     <div class="hint">파형을 클릭하면 이동 · 드래그하면 반복 구간 선택</div>
     <div class="transport">
-      <div id="clock" class="clock time">0:00.0 / 0:00.0</div>
+      <div id="clock" class="clock time"><span id="clockCur">0:00.0</span><span class="tot"><span class="sl"> / </span><span id="clockTot">0:00.0</span></span></div>
       <div class="tcenter">
         <button id="back5" class="round" title="5초 뒤로" aria-label="5초 뒤로"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11 6.5v11a.8.8 0 0 1-1.25.66L2.6 12.66a.8.8 0 0 1 0-1.32l7.15-5.5A.8.8 0 0 1 11 6.5zm10 0v11a.8.8 0 0 1-1.25.66l-7.15-5.5a.8.8 0 0 1 0-1.32l7.15-5.5A.8.8 0 0 1 21 6.5z"></path></svg></button>
         <button id="playBtn" title="재생 / 일시정지 (Space)" aria-label="재생"><svg class="i-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"></path></svg><svg class="i-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4.5" height="14" rx="1.2"></rect><rect x="13.5" y="5" width="4.5" height="14" rx="1.2"></rect></svg></button>
         <button id="fwd5" class="round" title="5초 앞으로" aria-label="5초 앞으로"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g transform="matrix(-1 0 0 1 24 0)"><path d="M11 6.5v11a.8.8 0 0 1-1.25.66L2.6 12.66a.8.8 0 0 1 0-1.32l7.15-5.5A.8.8 0 0 1 11 6.5zm10 0v11a.8.8 0 0 1-1.25.66l-7.15-5.5a.8.8 0 0 1 0-1.32l7.15-5.5A.8.8 0 0 1 21 6.5z"></path></g></svg></button>
       </div>
-      <div class="tright"><button id="loopBtn" class="switch" title="구간 반복 켜기/끄기 (L)" aria-pressed="false">구간 반복</button></div>
+      <div class="tright">
+        <button id="loopBtn" class="switch" title="구간 반복 켜기/끄기 (L)" aria-label="구간 반복" aria-pressed="false"><span class="lbl">구간 반복</span><svg class="mob" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m17 2 4 4-4 4"></path><path d="M3 11v-1a4 4 0 0 1 4-4h14"></path><path d="m7 22-4-4 4-4"></path><path d="M21 13v1a4 4 0 0 1-4 4H3"></path></svg></button>
+        <button id="sheetBtn" class="round mob" title="연습 설정" aria-label="연습 설정"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></button>
+      </div>
     </div>
     <div class="tools">
+      <div class="sheetHead sheet-only"><h2>연습 설정</h2><button id="sheetClose" class="small ghost">닫기</button></div>
       <div class="group">
         <span class="label">반복 구간</span>
         <button id="setA" class="small" title="지금 위치를 시작으로 (A)">A 시작</button>
@@ -274,11 +350,14 @@
         <input type="range" id="rate" min="0.5" max="1.5" step="0.05" value="1" aria-label="재생 속도">
         <span id="rateLabel" class="time muted">1.00x</span>
       </div>
-      <div class="group">
+      <div class="group hide-sm">
         <span class="label">음량</span>
         <button id="muteBtn" class="small ghost volBtn" title="음소거 (M)" aria-label="음소거"><svg class="i-vol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z" fill="currentColor"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg><svg class="i-mute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z" fill="currentColor"></path><path d="m16 9 6 6"></path><path d="m22 9-6 6"></path></svg></button>
         <input type="range" id="vol" min="0" max="1" step="0.05" value="1" aria-label="음량">
         <span id="volLabel" class="time muted">100%</span>
+      </div>
+      <div class="group">
+        <button id="stopBtn" class="switch" title="반복을 끈 채 파트를 재생할 때, 파트가 끝나면 멈춤 (끄면 다음 파트로 이어서 재생)" aria-pressed="false">파트 끝에서 멈춤</button>
       </div>
       <details class="more">
         <summary>⚙ 반복 설정</summary>
@@ -287,6 +366,10 @@
           <label>반복 사이 쉼 <input type="number" id="gap" min="0" max="10" step="0.5" value="0"> 초</label>
         </div>
       </details>
+      <div class="sheetActs sheet-only">
+        <button id="sheetEdit">✏️ 가사·타이밍 수정</button>
+        <button id="sheetSave">⬇ HTML로 저장</button>
+      </div>
     </div>
   </section>
 
@@ -316,7 +399,7 @@
         </div>
       </section>
 
-      <section class="panel">
+      <section class="panel" id="savePanel">
         <div class="phead"><h2>저장 · 공유</h2></div>
         <button id="bakeBtn" class="primary wide">⬇ HTML로 저장 (공유용)</button>
         <div class="muted note">고친 가사·구간은 이 브라우저에 자동 저장돼요. 다른 기기나 사람에게 주려면 위 버튼으로 저장한 HTML을 <b>음원과 같은 폴더</b>에 넣어 보내세요. 저장할 때 위치를 고를 수 있고, 다음부터는 지난번 폴더에서 열려요.</div>
@@ -1600,14 +1683,43 @@ function seek(t) { audio.currentTime = Math.min(Math.max(t, 0), dur()); prevT = 
 function togglePlay() { audio.paused ? audio.play() : audio.pause(); }
 function playFrom(t) { waiting = false; seek(t); audio.play(); }
 function restartSection() { if (A != null) playFrom(Math.max(0, A - +$('#preroll').value)); else audio.play(); }
-audio.onplay = audio.onpause = () => { $('#playBtn').classList.toggle('playing', !audio.paused); $('#playBtn').setAttribute('aria-label', audio.paused ? '재생' : '일시정지'); };
+audio.onplay = audio.onpause = () => { $('#playBtn').classList.toggle('playing', !audio.paused); $('#playBtn').setAttribute('aria-label', audio.paused ? '재생' : '일시정지'); keepAwake(!audio.paused); };
 audio.addEventListener('play', () => { waiting = false; });
 $('#playBtn').onclick = togglePlay;
 $('#back5').onclick = () => seek(audio.currentTime - 5);
 $('#fwd5').onclick = () => seek(audio.currentTime + 5);
 
+// 재생 중에는 화면이 꺼지지 않게
+let wakeLock = null;
+async function keepAwake(on) {
+  if (!('wakeLock' in navigator)) return;
+  try {
+    if (on && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; }); }
+    else if (!on && wakeLock) { const w = wakeLock; wakeLock = null; await w.release(); }
+  } catch {}
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && !audio.paused) keepAwake(true); });
+
+// 잠금화면 · 이어폰 버튼 (이전/다음 곡 버튼 = 이전/다음 줄)
+if ('mediaSession' in navigator) {
+  const act = (a, f) => { try { navigator.mediaSession.setActionHandler(a, f); } catch {} };
+  act('play', () => audio.play()); act('pause', () => audio.pause());
+  act('seekbackward', () => seek(audio.currentTime - 5)); act('seekforward', () => seek(audio.currentTime + 5));
+  act('seekto', e => seek(e.seekTime));
+  act('previoustrack', () => stepLine(-1)); act('nexttrack', () => stepLine(1));
+}
+
 function setLoop(v) { loop = v; $('#loopBtn').classList.toggle('on', v); $('#loopBtn').setAttribute('aria-pressed', v); }
 $('#loopBtn').onclick = () => setLoop(!loop);
+
+// 파트 끝에서 멈춤 (기본은 꺼짐 = 다음 파트로 이어서 재생, 이 브라우저에 기억)
+let stopAtEnd = false;
+function setStop(v) {
+  stopAtEnd = v; $('#stopBtn').classList.toggle('on', v); $('#stopBtn').setAttribute('aria-pressed', v);
+  try { localStorage.setItem('practice-stop-at-part-end', v ? '1' : '0'); } catch {}
+}
+$('#stopBtn').onclick = () => setStop(!stopAtEnd);
+try { setStop(localStorage.getItem('practice-stop-at-part-end') === '1'); } catch { setStop(false); }
 
 function setAB(a, b, partIdx) {
   A = a; B = b; activePart = partIdx;
@@ -1725,6 +1837,13 @@ function loopLine(i) {
   setAB(data.lines[i].t, lineEnd(i) + 0.3, -1);
   restartSection();
 }
+// 이전 줄(지금 줄을 1.5초 넘게 불렀으면 그 줄 처음) / 다음 줄
+function stepLine(dir) {
+  const i = lineIndexAt(audio.currentTime);
+  let j = dir < 0 ? (audio.currentTime - (data.lines[i] ? data.lines[i].t : 0) > 1.5 ? i : i - 1) : i + 1;
+  j = Math.min(Math.max(j, 0), data.lines.length - 1);
+  playFrom(data.lines[j].t);
+}
 function markLoopLines() {
   if (editMode) return;
   lineEls.forEach((el, i) => {
@@ -1737,6 +1856,19 @@ function lineIndexAt(t) {
   for (let i = 0; i < data.lines.length; i++) if (data.lines[i].t <= t + 0.05) idx = i;
   return idx;
 }
+// 지금 줄을 가운데로 (모바일은 페이지 전체를, PC는 가사 상자를 스크롤). 직접 스크롤한 직후엔 따라가지 않음
+const mobile = matchMedia('(max-width: 600px)');
+let userScrollAt = 0;
+['wheel', 'touchmove'].forEach(t => addEventListener(t, e => { if (!e.target.closest || !e.target.closest('#player')) userScrollAt = Date.now(); }, { passive: true }));
+function scrollToLine(el) {
+  if (Date.now() - userScrollAt < 2500) return;
+  if (mobile.matches) {
+    const r = el.getBoundingClientRect(), top = $('.hero').getBoundingClientRect().bottom, bottom = $('#player').getBoundingClientRect().top;
+    scrollTo({ top: scrollY + r.top + r.height / 2 - (top + bottom) / 2, behavior: 'smooth' });
+  } else {
+    const box = $('#lyricsBox'); box.scrollTop = el.offsetTop - box.clientHeight / 2 + el.clientHeight / 2;
+  }
+}
 function updateLyrics() {
   if (editMode) return;
   const t = audio.currentTime;
@@ -1745,7 +1877,7 @@ function updateLyrics() {
     lineEls.forEach((el, i) => { el.classList.toggle('past', i < idx); el.classList.remove('now'); });
     curLine = idx;
     const el = lineEls[idx] || lineEls[0];
-    if (el) { const box = $('#lyricsBox'); box.scrollTop = el.offsetTop - box.clientHeight / 2 + el.clientHeight / 2; }
+    if (el) scrollToLine(el);
   }
   if (idx >= 0) {
     const el = lineEls[idx], l = data.lines[idx], end = lineEnd(idx);
@@ -1771,6 +1903,7 @@ $('#editBtn').onclick = () => {
   $('#cols').classList.toggle('edit', editMode);
   $('#editBtn').textContent = editMode ? '✔ 수정 끝내기' : '✏️ 가사·타이밍 수정';
   $('#editBtn').classList.toggle('on', editMode);
+  $('#sheetEdit').textContent = $('#editBtn').textContent;
   if (editMode) selLine = Math.max(0, lineIndexAt(audio.currentTime));
   renderLyrics();
 };
@@ -1810,10 +1943,29 @@ function renderParts() {
     };
     box.appendChild(el);
   });
+  // 모바일 위쪽 파트 칩
+  const chips = $('#partChips'); chips.innerHTML = '';
+  data.parts.forEach((p, i) => {
+    const c = document.createElement('button'); c.textContent = p.name; c.classList.toggle('on', i === activePart);
+    c.onclick = () => playPart(i); chips.appendChild(c);
+  });
+  const on = chips.children[activePart];
+  if (on) chips.scrollTo({ left: on.offsetLeft - chips.offsetLeft - (chips.clientWidth - on.offsetWidth) / 2, behavior: 'smooth' });
 }
 function playPart(i) {
   const p = data.parts[i]; if (!p) return;
   setAB(p.start, p.end, i); restartSection();
+}
+// t가 들어 있는 파트 (겹치면 나중에 시작하는 파트)
+function partAt(t) {
+  let idx = -1;
+  data.parts.forEach((p, i) => { if (p.start <= t && t < p.end && (idx < 0 || p.start >= data.parts[idx].start)) idx = i; });
+  return idx;
+}
+// 재생 위치가 다른 파트로 넘어가면 선택된 파트(칩·A~B)도 따라감
+function followPart() {
+  const i = partAt(audio.currentTime);
+  if (i >= 0 && i !== activePart) setAB(data.parts[i].start, data.parts[i].end, i);
 }
 $('#addPart').onclick = () => {
   if (A == null || B == null) return alert('먼저 A~B 구간을 지정하세요. (파형 드래그 또는 가사 줄의 반복 버튼)');
@@ -1887,14 +2039,15 @@ async function saveHtml(html, name) {
 
 // ===== 메인 루프 =====
 function tick() {
-  $('#clock').textContent = fmt(audio.currentTime) + ' / ' + fmt(dur());
+  $('#clockCur').textContent = fmt(audio.currentTime); $('#clockTot').textContent = fmt(dur());
   if (loop && !audio.paused && !waiting && A != null && B != null && audio.currentTime >= B) {
     const gap = +$('#gap').value;
     if (gap > 0) { waiting = true; audio.pause(); setTimeout(() => { if (waiting) restartSection(); }, gap * 1000); }
     else seek(Math.max(0, A - +$('#preroll').value));
   }
-  // 반복을 끈 채 파트를 재생하면 파트 끝에서 한 번 멈춤 (다시 재생하면 다음 부분으로 이어짐)
-  else if (!loop && activePart >= 0 && !audio.paused && B != null && prevT < B && audio.currentTime >= B) { audio.pause(); seek(B); }
+  // 반복을 끈 채 파트를 재생할 때: '파트 끝에서 멈춤'이 켜져 있으면 끝에서 한 번 멈추고, 아니면 다음 파트로 이어서 재생
+  else if (!loop && stopAtEnd && activePart >= 0 && !audio.paused && B != null && prevT < B && audio.currentTime >= B) { audio.pause(); seek(B); followPart(); }
+  else if (!loop && activePart >= 0 && (audio.currentTime >= B || audio.currentTime < A - +$('#preroll').value - 0.3)) followPart(); // 구간 앞 여유만큼 앞에서 시작하는 건 그대로 둠
   prevT = audio.currentTime;
   updateLyrics(); draw();
   requestAnimationFrame(tick);
@@ -1904,7 +2057,8 @@ function tick() {
 document.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' && e.target.type !== 'range') return;
   const k = e.key;
-  if (k === ' ') { e.preventDefault(); togglePlay(); }
+  if (k === 'Escape') setSheet(false);
+  else if (k === ' ') { e.preventDefault(); togglePlay(); }
   else if (editMode && (k === 't' || k === 'T')) {
     if (!data.lines[selLine]) return;
     const next = selLine + 1;
@@ -1918,13 +2072,7 @@ document.addEventListener('keydown', e => {
   else if (k === 'r' || k === 'R') loopLine(Math.max(0, lineIndexAt(audio.currentTime)));
   else if (k === 'm' || k === 'M') toggleMute();
   else if (k === 'Enter') restartSection();
-  else if (k === 'ArrowUp' || k === 'ArrowDown') {
-    e.preventDefault();
-    const i = lineIndexAt(audio.currentTime);
-    let j = k === 'ArrowUp' ? (audio.currentTime - (data.lines[i] ? data.lines[i].t : 0) > 1.5 ? i : i - 1) : i + 1;
-    j = Math.min(Math.max(j, 0), data.lines.length - 1);
-    playFrom(data.lines[j].t);
-  }
+  else if (k === 'ArrowUp' || k === 'ArrowDown') { e.preventDefault(); stepLine(k === 'ArrowUp' ? -1 : 1); }
   else if (k === 'ArrowLeft') { e.preventDefault(); seek(audio.currentTime - 0.5); }
   else if (k === 'ArrowRight') { e.preventDefault(); seek(audio.currentTime + 0.5); }
   else if (k === ',') seek(audio.currentTime - 1);
@@ -1951,8 +2099,17 @@ function selectSong(id) {
   try { localStorage.setItem('practice-song', song.id); } catch {}
   if (hashSong() !== song.id) try { history.replaceState(null, '', '#' + encodeURIComponent(song.id)); } catch {}
   renderLyrics(); setLoop(false); setAB(null, null, -1);
-  $('#lyricsBox').scrollTop = 0;
+  $('#lyricsBox').scrollTop = 0; if (mobile.matches) scrollTo(0, 0);
+  if ('mediaSession' in navigator) try { navigator.mediaSession.metadata = new MediaMetadata({ title: song.title, artist: song.sub, album: '성탄 연습' }); } catch {}
 }
+
+// ===== 모바일 설정 시트 =====
+function setSheet(v) { document.body.classList.toggle('sheet', v); }
+$('#sheetBtn').onclick = () => setSheet(true);
+$('#sheetClose').onclick = $('#sheetBack').onclick = () => setSheet(false);
+$('#sheetEdit').onclick = () => { setSheet(false); $('#editBtn').click(); };
+$('#sheetSave').onclick = () => $('#bakeBtn').click();
+mobile.addEventListener('change', () => { if (!mobile.matches) setSheet(false); });
 function hashSong() { try { return decodeURIComponent(location.hash.slice(1)); } catch { return ''; } }
 SONGS.forEach(s => {
   const b = document.createElement('button'); b.className = 'small'; b.dataset.id = s.id; b.textContent = s.title;
