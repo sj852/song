@@ -144,6 +144,8 @@
                 font-size: 30px; color: #f5c95c; text-shadow: 0 0 18px rgba(245,201,92,.75); }
   .hero h1 { font-size: 24px; }
   .hero .sub { color: rgba(255,255,255,.72); }
+  .heroLink { flex: none; color: #f5c95c; font-size: 13px; font-weight: 700; text-decoration: none; padding: 8px 12px; border-radius: 10px; background: rgba(255,255,255,.08); }
+  .heroLink:hover { background: rgba(255,255,255,.14); }
   #missing { display: none; background: var(--accent-soft); border-color: transparent; box-shadow: none; }
 
   #waveWrap { height: 128px; }
@@ -296,6 +298,7 @@
     input#rate { flex: 1; }
     details.more summary { padding: 10px 12px; font-size: 14px; }
     .sheetActs button { flex: 1; min-height: 46px; }
+    .sheetLink { justify-content: center; padding: 12px; border-radius: 10px; background: var(--soft); color: var(--text); font-weight: 600; text-decoration: none; }
   }
 </style>
 </head>
@@ -308,6 +311,7 @@
       <div class="sub" id="songSub">가사를 누르면 그 줄부터 재생돼요</div>
     </div>
     <nav class="songTabs" id="songTabs" aria-label="곡 선택"></nav>
+    <a class="heroLink hide-sm" id="danceLink" href="%EC%84%B1%ED%83%84%20%EC%9C%A8%EB%8F%99%20%EB%8F%99%EC%84%A0.html">💃 율동 동선</a>
     <nav id="partChips" aria-label="파트 바로가기"></nav>
   </header>
 
@@ -370,6 +374,7 @@
         <button id="sheetEdit">✏️ 가사·타이밍 수정</button>
         <button id="sheetSave">⬇ HTML로 저장</button>
       </div>
+      <a class="sheet-only sheetLink" id="sheetDance" href="%EC%84%B1%ED%83%84%20%EC%9C%A8%EB%8F%99%20%EB%8F%99%EC%84%A0.html">💃 율동 동선 페이지로</a>
     </div>
   </section>
 
@@ -2093,6 +2098,7 @@ function selectSong(id) {
   $('#songTitle').textContent = song.title;
   $('#songSub').textContent = song.sub + ' · 가사를 누르면 그 줄부터 재생돼요';
   $('#missingName').textContent = song.src;
+  $('#danceLink').href = $('#sheetDance').href = '%EC%84%B1%ED%83%84%20%EC%9C%A8%EB%8F%99%20%EB%8F%99%EC%84%A0.html#' + encodeURIComponent(song.id);
   document.querySelectorAll('#songTabs button').forEach(b => {
     b.classList.toggle('on', b.dataset.id === song.id); b.setAttribute('aria-pressed', b.dataset.id === song.id);
   });
