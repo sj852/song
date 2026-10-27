@@ -3,9 +3,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>성탄 연습</title>
+<style>
+  /* 넘어가는 동안 하얗게 번쩍이지 않게: 고른 화면 모드(없으면 시스템 설정) 색으로 */
+  :root { color-scheme: light dark; }
+  :root[data-theme="light"] { color-scheme: light; }
+  :root[data-theme="dark"] { color-scheme: dark; }
+  body { font-family: system-ui, sans-serif; padding: 24px 16px; background: #f6f2ec; color: #2a211f; }
+  a { color: #b9312a; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) body { background: #0c111d; color: #eef0f6; } :root:not([data-theme="light"]) a { color: #ef5a4c; } }
+  :root[data-theme="dark"] body { background: #0c111d; color: #eef0f6; }
+  :root[data-theme="dark"] a { color: #ef5a4c; }
+</style>
+<script>try { const t = localStorage.getItem('site-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch {}</script>
 <meta http-equiv="refresh" content="0; url=%EC%84%B1%ED%83%84%20%EC%97%B0%EC%8A%B5.html">
 <script>location.replace('%EC%84%B1%ED%83%84%20%EC%97%B0%EC%8A%B5.html' + location.hash); // #곡 이름도 그대로 넘김</script>
 </head>
-<body style="font-family: system-ui, sans-serif; padding: 24px 16px;">
+<body>
   <a href="%EC%84%B1%ED%83%84%20%EC%97%B0%EC%8A%B5.html">성탄 연습 페이지로 이동</a>
 </body></html>

@@ -3,6 +3,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>성탄 율동 동선</title>
+<script>
+// 화면 모드: ☀/🌙로 고른 게 있으면 그걸로, 없으면 시스템 설정 (깜빡임 없게 먼저 적용)
+try { const t = localStorage.getItem('site-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch {}
+</script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
   :root {
@@ -12,14 +16,22 @@
     --shadow: 0 1px 2px rgba(60,35,20,.05), 0 8px 28px rgba(60,35,20,.06);
     color-scheme: light;
   }
+  /* 다크: 시스템 설정을 따르되, ☀/🌙 버튼으로 고른 게 있으면 그걸로 (data-theme) */
   @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
       --bg: #0c111d; --panel: #141a2a; --soft: #1d2538; --soft-2: #283148; --text: #eef0f6; --muted: #9ea6bb; --faint: #5a6480; --line: #212a3f;
       --accent: #ef5a4c; --accent-hover: #f46d60; --accent-soft: rgba(239,90,76,.16); --accent-glow: rgba(239,90,76,.32); --on-accent: #fff;
       --gold: #ecbd55; --danger: #ff6b5b;
       --shadow: none;
       color-scheme: dark;
     }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0c111d; --panel: #141a2a; --soft: #1d2538; --soft-2: #283148; --text: #eef0f6; --muted: #9ea6bb; --faint: #5a6480; --line: #212a3f;
+    --accent: #ef5a4c; --accent-hover: #f46d60; --accent-soft: rgba(239,90,76,.16); --accent-glow: rgba(239,90,76,.32); --on-accent: #fff;
+    --gold: #ecbd55; --danger: #ff6b5b;
+    --shadow: none;
+    color-scheme: dark;
   }
 
   * { box-sizing: border-box; }
@@ -96,6 +108,8 @@
   .songTabs button.on, .songTabs button.on:hover { background: #fff; color: #1b2142; }
   .heroLink { flex: none; color: #f5c95c; font-size: 13px; font-weight: 700; text-decoration: none; padding: 8px 12px; border-radius: 10px; background: rgba(255,255,255,.08); }
   .heroLink:hover { background: rgba(255,255,255,.14); }
+  .themeBtn, .themeBtn:hover { flex: none; width: 36px; height: 36px; padding: 0; border-radius: 10px; font-size: 16px; background: rgba(255,255,255,.08); color: #f5c95c; }
+  .themeBtn:hover { background: rgba(255,255,255,.14); }
   #missing { display: none; background: var(--accent-soft); border-color: transparent; box-shadow: none; }
 
   /* 대형 칩 */
@@ -289,6 +303,7 @@
     .hero .sub { display: none; }
     .songTabs button { padding: 5px 12px; }
     .heroLink { padding: 6px 10px; }
+    .themeBtn { width: 32px; height: 32px; }
     /* 대형 칩은 한 줄로(넘치면 옆으로 스크롤), 전체·후보 대형 버튼은 그 오른쪽에 */
     .chipsRow { display: flex; flex-direction: row-reverse; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
     .chipsHead { flex: none; flex-direction: column; align-items: stretch; gap: 4px; margin: 0; }
@@ -398,6 +413,7 @@
     </div>
     <nav class="songTabs" id="songTabs" aria-label="곡 선택"></nav>
     <a class="heroLink" id="practiceLink" href="%EC%84%B1%ED%83%84%20%EC%97%B0%EC%8A%B5.html">🎵 가사 연습</a>
+    <button class="themeBtn" id="themeBtn" type="button"></button>
   </header>
 
   <div class="panel" id="missing">
@@ -601,7 +617,7 @@
 <audio id="audio" preload="auto"></audio>
 
 <script>
-const PAGE_SRC = '<!doctype html>\n' + document.documentElement.outerHTML; // 수정 전 원본 (HTML 저장용)
+const PAGE_SRC = '<!doctype html>\n' + document.documentElement.outerHTML.replace(/ data-theme="\w+"/, ''); // 수정 전 원본 (HTML 저장용, 화면 모드는 빼고)
 // ===== 곡 · 파트 · 가사 (성탄 연습.html에서 가져옴) =====
 const SONGS = [
  {
@@ -1654,4 +1670,18 @@ let startSong = hashSong();
 if (!SONGS.some(s => s.id === startSong)) try { startSong = localStorage.getItem('dance-song'); } catch {}
 selectSong(startSong);
 requestAnimationFrame(tick);
+</script>
+<script>
+// ☀/🌙 화면 모드 전환 (두 페이지가 같은 설정을 씀)
+(() => {
+  const btn = document.getElementById('themeBtn'), root = document.documentElement, sys = matchMedia('(prefers-color-scheme: dark)');
+  const dark = () => root.dataset.theme ? root.dataset.theme === 'dark' : sys.matches;
+  const show = () => { btn.textContent = dark() ? '☀' : '🌙'; btn.title = dark() ? '라이트 모드로' : '다크 모드로'; btn.setAttribute('aria-label', btn.title); };
+  btn.onclick = () => {
+    root.dataset.theme = dark() ? 'light' : 'dark';
+    try { localStorage.setItem('site-theme', root.dataset.theme); } catch {}
+    show();
+  };
+  sys.addEventListener('change', show); show();
+})();
 </script></body></html>

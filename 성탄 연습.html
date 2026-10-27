@@ -3,6 +3,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>성탄 연습</title>
+<script>
+// 화면 모드: ☀/🌙로 고른 게 있으면 그걸로, 없으면 시스템 설정 (깜빡임 없게 먼저 적용)
+try { const t = localStorage.getItem('site-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch {}
+</script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
   :root {
@@ -12,14 +16,22 @@
     --shadow: 0 1px 2px rgba(60,35,20,.05), 0 8px 28px rgba(60,35,20,.06);
     color-scheme: light;
   }
+  /* 다크: 시스템 설정을 따르되, ☀/🌙 버튼으로 고른 게 있으면 그걸로 (data-theme) */
   @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
       --bg: #0c111d; --panel: #141a2a; --soft: #1d2538; --soft-2: #283148; --text: #eef0f6; --muted: #9ea6bb; --faint: #5a6480; --line: #212a3f;
       --accent: #ef5a4c; --accent-hover: #f46d60; --accent-soft: rgba(239,90,76,.16); --accent-glow: rgba(239,90,76,.32); --on-accent: #fff;
       --gold: #ecbd55; --wave: #343e57; --played: #ff7869; --danger: #ff6b5b;
       --shadow: none;
       color-scheme: dark;
     }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0c111d; --panel: #141a2a; --soft: #1d2538; --soft-2: #283148; --text: #eef0f6; --muted: #9ea6bb; --faint: #5a6480; --line: #212a3f;
+    --accent: #ef5a4c; --accent-hover: #f46d60; --accent-soft: rgba(239,90,76,.16); --accent-glow: rgba(239,90,76,.32); --on-accent: #fff;
+    --gold: #ecbd55; --wave: #343e57; --played: #ff7869; --danger: #ff6b5b;
+    --shadow: none;
+    color-scheme: dark;
   }
 
   * { box-sizing: border-box; }
@@ -128,7 +140,7 @@
     .hide-sm { display: none; }
   }
 
-  main { max-width: 1120px; }
+  main { max-width: 1440px; } /* 율동 동선 페이지와 같은 폭 */
   .hero { display: flex; align-items: center; gap: 16px; padding: 22px 24px; border-radius: 20px; margin-bottom: 16px; color: #fff;
           background:
             radial-gradient(circle 2px at 14% 28%, rgba(255,255,255,.9) 0 1px, transparent 2px),
@@ -146,6 +158,8 @@
   .hero .sub { color: rgba(255,255,255,.72); }
   .heroLink { flex: none; color: #f5c95c; font-size: 13px; font-weight: 700; text-decoration: none; padding: 8px 12px; border-radius: 10px; background: rgba(255,255,255,.08); }
   .heroLink:hover { background: rgba(255,255,255,.14); }
+  .themeBtn, .themeBtn:hover { flex: none; width: 36px; height: 36px; padding: 0; border-radius: 10px; font-size: 16px; background: rgba(255,255,255,.08); color: #f5c95c; }
+  .themeBtn:hover { background: rgba(255,255,255,.14); }
   #missing { display: none; background: var(--accent-soft); border-color: transparent; box-shadow: none; }
 
   #waveWrap { height: 128px; }
@@ -239,8 +253,10 @@
     .hero { position: sticky; top: 0; z-index: 20; gap: 8px; margin: 0 -16px 8px; padding: calc(10px + env(safe-area-inset-top)) 12px 10px; border-radius: 0 0 18px 18px; }
     .hero .star, .hero .heroTitle { display: none; }
     .songTabs button { min-height: 34px; }
-    .songTabs { flex: 1; width: auto; min-width: 0; } /* 오른쪽에 율동 버튼 자리 */
+    .songTabs { flex: 1; width: auto; min-width: 0; flex-wrap: nowrap; } /* 오른쪽에 율동·화면 모드 버튼 자리 */
+    .songTabs button { min-width: 0; padding: 6px 8px; overflow: hidden; text-overflow: ellipsis; }
     .heroLink { align-self: stretch; display: flex; align-items: center; padding: 0 12px; }
+    .themeBtn { align-self: stretch; height: auto; min-height: 34px; }
     /* 파트는 전부 한눈에 (4칸 격자) */
     #partChips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; width: 100%; }
     #partChips button { min-width: 0; min-height: 34px; padding: 4px 5px; border-radius: 9px; font-size: 12px; letter-spacing: -.03em;
@@ -314,6 +330,7 @@
     </div>
     <nav class="songTabs" id="songTabs" aria-label="곡 선택"></nav>
     <a class="heroLink" id="danceLink" href="%EC%84%B1%ED%83%84%20%EC%9C%A8%EB%8F%99%20%EB%8F%99%EC%84%A0.html" title="율동 동선 페이지로">💃 율동<span class="hide-sm"> 동선</span></a>
+    <button class="themeBtn" id="themeBtn" type="button"></button>
     <nav id="partChips" aria-label="파트 바로가기"></nav>
   </header>
 
@@ -437,7 +454,7 @@
 <audio id="audio" preload="auto"></audio>
 
 <script>
-const PAGE_SRC = '<!doctype html>\n' + document.documentElement.outerHTML; // 수정 전 원본 (HTML 저장용)
+const PAGE_SRC = '<!doctype html>\n' + document.documentElement.outerHTML.replace(/ data-theme="\w+"/, ''); // 수정 전 원본 (HTML 저장용, 화면 모드는 빼고)
 // ===== 곡 목록 =====
 const SONGS = [
   { id: '성탄의별', title: '성탄의 별', sub: '성탄 공연 곡 연습용', src: '성탄 공연 곡 _ 성탄의 별 편집.m4a', len: 163.67, key: 'seongtan-star-v2' },
@@ -2135,4 +2152,18 @@ let startSong = hashSong();
 if (!SONGS.some(s => s.id === startSong)) try { startSong = localStorage.getItem('practice-song'); } catch {}
 selectSong(startSong);
 requestAnimationFrame(tick);
+</script>
+<script>
+// ☀/🌙 화면 모드 전환 (두 페이지가 같은 설정을 씀)
+(() => {
+  const btn = document.getElementById('themeBtn'), root = document.documentElement, sys = matchMedia('(prefers-color-scheme: dark)');
+  const dark = () => root.dataset.theme ? root.dataset.theme === 'dark' : sys.matches;
+  const show = () => { btn.textContent = dark() ? '☀' : '🌙'; btn.title = dark() ? '라이트 모드로' : '다크 모드로'; btn.setAttribute('aria-label', btn.title); };
+  btn.onclick = () => {
+    root.dataset.theme = dark() ? 'light' : 'dark';
+    try { localStorage.setItem('site-theme', root.dataset.theme); } catch {}
+    show(); if (typeof draw === 'function') draw(); // 파형은 캔버스라 다시 그림
+  };
+  sys.addEventListener('change', show); show();
+})();
 </script></body></html>
