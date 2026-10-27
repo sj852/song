@@ -111,6 +111,9 @@
   .cols { display: grid; grid-template-columns: 1fr 320px; gap: 16px; align-items: start; }
   .cols > * { min-width: 0; }
   @media (max-width: 860px) { .cols { grid-template-columns: 1fr; } }
+  /* 편집 패널 숨기기: 무대를 가로 가득 */
+  body.noSide .cols { grid-template-columns: 1fr; }
+  body.noSide .cols > aside { display: none; }
 
   /* 무대 */
   .stagePanel { padding: 14px; }
@@ -276,6 +279,46 @@
   #muteBtn { padding: 6px 8px; }
   #muteBtn.on { background: var(--accent-soft); }
 
+  /* 작은 노트북: 머리·대형 칩을 얇게, 무대를 크게 */
+  @media (min-width: 601px) and (max-width: 1440px), (min-width: 601px) and (max-height: 900px) {
+    main { padding-top: 10px; padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+    .panel { margin-bottom: 10px; }
+    .hero { gap: 12px; padding: 8px 14px; border-radius: 14px; margin-bottom: 8px; }
+    .hero .star { width: 34px; height: 34px; border-radius: 10px; font-size: 19px; }
+    .hero h1 { font-size: 18px; }
+    .hero .sub { display: none; }
+    .songTabs button { padding: 5px 12px; }
+    .heroLink { padding: 6px 10px; }
+    /* 대형 칩은 한 줄로(넘치면 옆으로 스크롤), 전체·후보 대형 버튼은 그 오른쪽에 */
+    .chipsRow { display: flex; flex-direction: row-reverse; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+    .chipsHead { flex: none; flex-direction: column; align-items: stretch; gap: 4px; margin: 0; }
+    .chipsHead h2, .chipsHead .muted, .chipsHead .grow, .chipsHead .ovLong { display: none; }
+    .chipsHead button { padding: 4px 10px; }
+    #sceneChips { flex: 1; min-width: 0; display: flex; overflow-x: auto; gap: 5px; margin: 0; padding-bottom: 4px; scrollbar-width: thin; }
+    #sceneChips button { flex: none; width: 108px; padding: 5px 9px; }
+    .stagePanel { padding: 10px; }
+    .stagePanel .phead { margin-bottom: 6px; }
+    .stagePanel .phead h2 { display: none; }
+    #stage { max-height: calc(100vh - 335px); min-height: 260px; }
+    .nowBox { margin-top: 4px; min-height: 0; }
+    .lyNow { font-size: 18px; }
+    .memoNow { margin-top: 4px; padding: 4px 10px; }
+    #player { padding-top: 4px; padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
+    #bar { height: 20px; }
+    #bar::before, #barFill { top: 8px; }
+    #barTicks i { top: 4px; }
+    #barHead { top: 3px; }
+    #playBtn { width: 46px; height: 46px; }
+    #playBtn svg { width: 22px; height: 22px; }
+    .transport .round { width: 38px; height: 38px; }
+  }
+  /* 오른쪽 편집 패널을 무대 아래로 */
+  @media (min-width: 861px) and (max-width: 1180px) {
+    .cols { grid-template-columns: 1fr; }
+    .cols > aside { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 10px; align-items: start; }
+    .cols > aside > #editor { grid-row: span 3; }
+  }
+
   /* 모바일 */
   @media (max-width: 600px) {
     main { padding: 0 16px calc(140px + env(safe-area-inset-bottom)); }
@@ -363,6 +406,7 @@
     <input type="file" id="fileInput" accept="audio/*,.m4a" hidden="">
   </div>
 
+  <div class="chipsRow">
   <div class="chipsHead">
     <h2>대형</h2>
     <span class="muted">누르면 그 대형으로 · 재생하면 음악에 맞춰 이동해요</span>
@@ -371,6 +415,7 @@
     <button id="ovPhotoBtn" class="small">🖼 후보 대형<span class="ovLong"> 한눈에</span></button>
   </div>
   <nav id="sceneChips" aria-label="대형 선택"></nav>
+  </div>
 
   <div class="cols">
     <div>
@@ -381,6 +426,7 @@
           <button id="multiBtn" class="tog" title="켜면 사람을 누를 때마다 선택에 더하고 빼요. 빈 곳을 끌면 네모 안 사람을 한꺼번에 골라요 (PC는 Shift/Ctrl+클릭, 빈 곳 끌기로도 돼요)">☑<span class="lg"> 여러 명</span></button>
           <button id="pathBtn" class="tog" title="이전 대형에서 온 자리(점선)와 이동 화살표 보기">↗ 이동<span class="lg"> 표시</span></button>
           <select id="focusSel" aria-label="한 사람 동선만 보기"></select>
+          <button id="sideBtn" class="tog" title="대형 편집·인원·설정 패널 보이기/숨기기 (숨기면 무대가 넓어져요)">✎<span class="lg"> 편집</span></button>
           <button id="fullBtn" class="tog" title="무대만 화면 가득 크게 보기">⛶<span class="lg"> 크게</span></button>
           <div class="seg" id="viewSeg" role="group" aria-label="보는 방향">
             <button data-mirror="0" title="객석에서 무대를 보는 방향">객석에서</button><button data-mirror="1" title="무대 위에서 객석을 보는 방향 (앞뒤·좌우 반대)">무대에서</button>
@@ -587,7 +633,7 @@ const clone = o => JSON.parse(JSON.stringify(o));
 let song = SONGS[0], sd = null, common = null, DEF = [];
 let picked = new Set(), pickMode = false; // 여러 명 같이 옮기기
 let sel = 0, focus = '', loopOn = false, loopIdx = 0, holdT = 0, drag = null, dEls = [];
-const view = { mirror: false, names: true, paths: true, snap: true, nearest: true };
+const view = { mirror: false, names: true, paths: true, snap: true, nearest: true, side: true };
 try { Object.assign(view, JSON.parse(localStorage.getItem('dance-view')) || {}); } catch {}
 const saveView = () => { try { localStorage.setItem('dance-view', JSON.stringify(view)); } catch {} };
 
@@ -1060,6 +1106,7 @@ $('#memAdd').onclick = () => {
 function setSwitch(id, v) { $(id).classList.toggle('on', v); $(id).setAttribute('aria-pressed', v); }
 function renderSettings() {
   $('#stW').value = common.W; $('#stH').value = common.H; $('#moveSec').value = common.move; $('#walkSpd').value = common.speed;
+  setSwitch('#sideBtn', view.side); document.body.classList.toggle('noSide', !view.side);
   setSwitch('#swNames', view.names); setSwitch('#swPaths', view.paths); setSwitch('#pathBtn', view.paths); setSwitch('#swSnap', view.snap); setSwitch('#swNearest', view.nearest);
   document.querySelectorAll('#viewSeg button').forEach(b => b.classList.toggle('on', +b.dataset.mirror === +view.mirror));
 }
@@ -1070,6 +1117,7 @@ $('#stW').onchange = $('#stH').onchange = () => {
 };
 $('#moveSec').onchange = () => { common.move = num($('#moveSec').value, 0.5, 10, 2); saveCommon(); renderSettings(); renderOverlay(); };
 $('#walkSpd').onchange = () => { common.speed = num($('#walkSpd').value, 0.3, 3, 1.2); saveCommon(); renderSettings(); renderOverlay(); };
+$('#sideBtn').onclick = () => { view.side = !view.side; saveView(); renderSettings(); };
 $('#swNames').onclick = () => { view.names = !view.names; saveView(); renderSettings(); renderDancers(); refreshOverview(); };
 $('#swPaths').onclick = $('#pathBtn').onclick = () => { view.paths = !view.paths; saveView(); renderSettings(); renderOverlay(); };
 $('#swSnap').onclick = () => { view.snap = !view.snap; saveView(); renderSettings(); };
