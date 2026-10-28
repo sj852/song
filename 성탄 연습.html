@@ -2152,9 +2152,8 @@ let startSong = hashSong();
 if (!SONGS.some(s => s.id === startSong)) try { startSong = localStorage.getItem('practice-song'); } catch {}
 selectSong(startSong);
 requestAnimationFrame(tick);
-</script>
-<script>
-// ☀/🌙 화면 모드 전환 (두 페이지가 같은 설정을 씀)
+
+// ☀/🌙 화면 모드 전환 (두 페이지가 같은 설정을 씀). 이 스크립트 안에 둬야 HTML 저장 때 빠지지 않음
 (() => {
   const btn = document.getElementById('themeBtn'), root = document.documentElement, sys = matchMedia('(prefers-color-scheme: dark)');
   const dark = () => root.dataset.theme ? root.dataset.theme === 'dark' : sys.matches;
