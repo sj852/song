@@ -555,7 +555,7 @@ try { const t = localStorage.getItem('site-theme'); if (t === 'light' || t === '
         <summary><h2>설정</h2><span class="muted">무대 크기 · 이동 속도</span></summary>
         <div style="margin-top: 12px">
           <div class="fld"><span>무대</span><input type="number" id="stW" min="3" max="40" step="0.5"> × <input type="number" id="stH" min="2" max="30" step="0.5"> m</div>
-          <div class="fld"><span>걷기</span><input type="number" id="walkSpd" min="0.3" max="3" step="0.1"> m/초 <span class="muted">다음 대형 시작에 맞춰 이 속도로 이동</span></div>
+          <div class="fld"><span>걷기</span><input type="number" id="walkSpd" min="0.3" max="3" step="0.1"> m/초 <span class="muted">대형 시각에 도착하도록 이 속도로 이동</span></div>
           <div class="fld"><span>최소</span><input type="number" id="moveSec" min="0.5" max="10" step="0.5"> 초 <span class="muted">가까워도 이만큼은 천천히</span></div>
           <div class="switches">
             <button id="swNames" class="switch">원 안에 이름 표시 (끄면 번호)</button>
@@ -797,7 +797,7 @@ function P(k, m, i) {
 const scenePos = k => common.members.map((m, i) => P(k, m, i));
 function sceneIdxAt(t) { let k = 0; sd.scenes.forEach((s, i) => { if (s.t <= t + 0.01) k = i; }); return k; }
 const ease = f => f * f * (3 - 2 * f);
-// 이동 규칙: 다음 대형 시작 직후(최대 1초 뒤)에 도착하도록, 걷는 속도로 걸리는 만큼 일찍 출발
+// 이동 규칙: 대형 시각에는 그 대형 자리에 서 있도록 딱 그때 도착하고, 걷는 속도로 걸리는 만큼만 일찍 출발
 // (앞 대형이 시작하기 전, 자기 앞 이동이 끝나기 전에는 출발하지 않음 → 시간이 모자라면 빨라지고 빨간 화살표로 표시)
 const moveDur = (p, q) => Math.max(common.move, Math.hypot(q[0] - p[0], q[1] - p[1]) / common.speed);
 const sceneLen = k => (sd.scenes[k + 1] ? sd.scenes[k + 1].t : dur()) - sd.scenes[k].t;
@@ -806,13 +806,11 @@ function schedule(m, i) {
   for (let k = 1; k < sd.scenes.length; k++) {
     const p = P(k - 1, m, i), q = P(k, m, i);
     if (Math.hypot(q[0] - p[0], q[1] - p[1]) < 0.01) continue;
-    let en = sd.scenes[k].t + Math.min(1, sceneLen(k) / 2), st;
-    const d = moveDur(p, q), go = sd.scenes[k].go;
-    if (go != null) { // 출발 시각을 정한 대형: 그때까지 기다렸다가 걸어서, 늦어도 다음 대형 시작 전에는 도착
-      st = Math.max(go, prevEnd);
-      const next = sd.scenes[k + 1] ? sd.scenes[k + 1].t : dur();
-      en = Math.max(st + 0.3, Math.min(Math.max(en, st + d), next));
-    } else st = Math.min(Math.max(en - d, prevEnd, sd.scenes[k - 1].t), en - 0.3); // 앞 대형이 시작하기 전에는 출발 안 함 (그 대형 자리에 한 번은 서도록)
+    const T = sd.scenes[k].t, d = moveDur(p, q), go = sd.scenes[k].go;
+    // 출발 시각을 정한 대형은 그때까지 기다렸다가, 아니면 앞 대형이 시작된 뒤 늦게 출발할수록 좋게
+    let st = go != null ? Math.max(go, prevEnd) : Math.max(T - d, prevEnd, sd.scenes[k - 1].t);
+    st = Math.min(st, T - 0.3);
+    const en = Math.max(T, st + 0.3);
     out.push({ k, st, en, p, q, fast: d > en - st + 0.01 }); prevEnd = en;
   }
   return out;
