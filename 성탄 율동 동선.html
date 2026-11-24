@@ -785,13 +785,14 @@ const clone = o => JSON.parse(JSON.stringify(o));
 let song = SONGS[0], sd = null, common = null, DEF = [];
 let picked = new Set(), pickMode = false, lastTap = {}; // 여러 명 같이 옮기기 · 두 번 누르기 확인
 let sel = 0, focus = '', loopOn = false, loopIdx = 0, holdT = 0, drag = null, dEls = [];
-// 처음 열면 효과 끔(fx) · 편집 패널 닫힘(side) · 대형 목록 접힘(chips). 바꾸면 그 브라우저에 기억
-const view = { mirror: false, names: true, paths: true, snap: true, nearest: true, side: false, fx: false, chips: false, viewV: 3 }; // chips: 대형 목록 펼침 // fx: 무대 효과 한꺼번에 켜기·끄기
+// 처음 열면 효과 끔(fx) · 편집 패널 닫힘(side) · 대형 목록 접힘(chips) · 이동 표시 끔(paths). 바꾸면 그 브라우저에 기억
+const view = { mirror: false, names: true, paths: false, snap: true, nearest: true, side: false, fx: false, chips: false, viewV: 4 }; // chips: 대형 목록 펼침 // fx: 무대 효과 한꺼번에 켜기·끄기
 try {
   const v = JSON.parse(localStorage.getItem('dance-view')) || {};
   if ((v.viewV || 0) < 2) delete v.side; // 예전에 저장된 보기 설정도 한 번은 새 기본값으로 (편집 닫힘)
   if ((v.viewV || 0) < 3) { delete v.fx; delete v.chips; } // (효과 끔 · 대형 목록 접힘)
-  Object.assign(view, v, { viewV: 3 });
+  if ((v.viewV || 0) < 4) delete v.paths; // (이동 표시 끔)
+  Object.assign(view, v, { viewV: 4 });
 } catch {}
 const saveView = () => { try { localStorage.setItem('dance-view', JSON.stringify(view)); } catch {} };
 
