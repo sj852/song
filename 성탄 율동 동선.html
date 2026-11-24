@@ -116,7 +116,7 @@ try { const t = localStorage.getItem('site-theme'); if (t === 'light' || t === '
 
   /* 대형 칩 */
   .chipsHead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 2px 10px; }
-  .chipsRow.folded #sceneChips { display: none; } /* 대형 목록 접기 */
+  .chipsRow.folded #sceneChips, .chipsRow.folded #ovBtn, .chipsRow.folded #ovPhotoBtn { display: none; } /* 대형 목록 접기: 전체·후보 대형 버튼도 같이 */
   .chipsRow.folded .chipsHead { flex: 1; flex-direction: row; align-items: center; justify-content: flex-end; flex-wrap: wrap; } /* 접으면 버튼은 한 줄로 */
   #chipsFold { display: block; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
   #sceneChips { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 6px; margin-bottom: 16px; }
