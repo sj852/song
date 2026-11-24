@@ -118,7 +118,7 @@ try { const t = localStorage.getItem('site-theme'); if (t === 'light' || t === '
   .chipsHead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 2px 10px; }
   .chipsRow.folded #sceneChips { display: none; } /* 대형 목록 접기 */
   .chipsRow.folded .chipsHead { flex: 1; flex-direction: row; align-items: center; justify-content: flex-end; flex-wrap: wrap; } /* 접으면 버튼은 한 줄로 */
-  #chipsFold { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #chipsFold { display: block; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
   #sceneChips { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 6px; margin-bottom: 16px; }
   #sceneChips button { min-width: 0; flex-direction: column; align-items: flex-start; gap: 0; padding: 7px 10px; background: var(--panel); box-shadow: inset 0 0 0 1px var(--line); }
   #sceneChips button b { max-width: 100%; font-size: 13px; line-height: 1.3; white-space: normal; text-align: left; overflow: hidden; word-break: keep-all; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; } /* 긴 이름은 두 줄까지 */
@@ -266,6 +266,7 @@ try { const t = localStorage.getItem('site-theme'); if (t === 'light' || t === '
 
   /* 무대 크게 보기 */
   .fsBar { display: none; }
+  #moreBtn { display: none; }
   body.full { overflow: hidden; }
   body.full #player { display: none; }
   body.full .stagePanel { position: fixed; inset: 0; z-index: 50; margin: 0; border: 0; border-radius: 0; box-shadow: none; display: flex; flex-direction: column; gap: 6px;
@@ -276,6 +277,10 @@ try { const t = localStorage.getItem('site-theme'); if (t === 'light' || t === '
   body.full .nowBox { margin-top: 0; min-height: 0; }
   body.full .fsBar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   body.full #fullBtn { display: none; }
+  .fsSeek { position: relative; width: 100%; height: 22px; cursor: pointer; touch-action: none; }
+  .fsSeek::before, .fsSeek i { content: ''; position: absolute; left: 0; top: 9px; height: 4px; border-radius: 2px; }
+  .fsSeek::before { right: 0; background: var(--soft-2); }
+  .fsSeek i { width: 0; background: var(--accent); }
   .fsInfo { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 13px; line-height: 1.3; }
   .fsInfo b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .fsInfo .time { color: var(--muted); font-size: 12px; }
@@ -296,21 +301,24 @@ try { const t = localStorage.getItem('site-theme'); if (t === 'light' || t === '
   }
   /* 가로 화면: 위에 얇은 보기 설정, 가운데 무대, 아래에 [재생 | 큰 가사(가운데) | 대형 정보·닫기] */
   @media (orientation: landscape) {
-    body.full .stagePanel { display: grid; grid-template-columns: 136px minmax(0, 1fr) 136px; grid-template-rows: auto minmax(0, 1fr) auto auto; gap: 4px 10px; }
+    body.full .stagePanel { display: grid; grid-template-columns: 136px minmax(0, 1fr) 136px; grid-template-rows: auto minmax(0, 1fr) auto auto auto; gap: 4px 10px; }
     body.full .stagePanel .phead { grid-column: 1 / 4; grid-row: 1; gap: 6px; flex-wrap: nowrap; }
     body.full .stagePanel .phead > * { flex: none; }
     body.full .stagePanel .phead .tog, body.full .stagePanel .phead select { padding-top: 4px; padding-bottom: 4px; }
     body.full #stage { grid-column: 1 / 4; grid-row: 2; height: 100%; }
     body.full .fsBar, body.full .fsRight { display: contents; }
-    body.full .fsCtl { grid-column: 1; grid-row: 3 / 5; align-self: center; gap: 4px; }
+    body.full .fsSeek { grid-column: 1 / 4; grid-row: 3; height: 16px; }
+    body.full .fsSeek::before, body.full .fsSeek i { top: 6px; }
+    body.full .fsCtl { grid-column: 1; grid-row: 4 / 6; align-self: center; gap: 4px; }
     body.full .fsCtl .round { width: 40px; height: 40px; }
-    body.full .nowBox { grid-column: 2; grid-row: 3 / 5; align-self: center; text-align: center; min-width: 0; }
+    body.full .nowBox { grid-column: 2; grid-row: 4 / 6; align-self: center; text-align: center; min-width: 0; }
     body.full .lyNow { font-size: clamp(22px, 4vw, 30px); line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     body.full .lyNext { font-size: 18px; min-height: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     body.full .memoNow { display: none; }
-    body.full .fsInfo { grid-column: 3; grid-row: 3; align-self: end; text-align: right; }
-    body.full #fsClose { grid-column: 3; grid-row: 4; justify-self: end; align-self: start; padding: 5px 9px; }
+    body.full .fsInfo { grid-column: 3; grid-row: 4; align-self: end; text-align: right; }
+    body.full #fsClose { grid-column: 3; grid-row: 5; justify-self: end; align-self: start; padding: 5px 9px; }
     body.full .fsHint { display: none; }
+    body.full .stagePanel .phead .lg { display: none; }
   }
 
   /* 아래 고정 플레이어 */
@@ -407,6 +415,18 @@ try { const t = localStorage.getItem('site-theme'); if (t === 'light' || t === '
     .stagePanel .phead { gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
     .stagePanel .phead h2 { display: none; }
     .stagePanel .phead select { flex: 1 1 100px; min-width: 100px; }
+    /* 휴대폰: 무대 위 도구는 한 줄(이동·효과·내 동선·크게), 나머지(여러 명·편집·보는 방향)는 ⋯ 눌러서 */
+    .stagePanel .phead { flex-wrap: nowrap; }
+    .stagePanel .phead > * { flex: none; }
+    .stagePanel .phead select { flex: 1 1 0; min-width: 0; }
+    body:not(.moreTools) #multiBtn, body:not(.moreTools) #sideBtn, body:not(.moreTools) #viewSeg { display: none; }
+    body.moreTools .stagePanel .phead { flex-wrap: wrap; }
+    #moreBtn { display: inline-flex; }
+    /* 대형 목록을 접으면 버튼 셋을 한 줄로 */
+    .chipsRow.folded .chipsHead { flex-wrap: nowrap; gap: 6px; }
+    .chipsRow.folded .chipsHead h2, .chipsRow.folded .chipsHead .grow { display: none; }
+    .chipsRow.folded .chipsHead > button { flex: none; }
+    .chipsRow.folded #chipsFold { flex: 1 1 0; min-width: 0; max-width: none; }
     .stagePanel .phead .grow, .tog .lg { display: none; }
     .tog { padding: 6px 9px; }
     .lyNow { font-size: 17px; }
@@ -498,8 +518,9 @@ try { const t = localStorage.getItem('site-theme'); if (t === 'light' || t === '
           <button id="multiBtn" class="tog" title="켜면 사람을 누를 때마다 선택에 더하고 빼요. 빈 곳을 끌면 네모 안 사람을 한꺼번에 골라요 (PC는 Shift/Ctrl+클릭, 빈 곳 끌기로도 돼요)">☑<span class="lg"> 여러 명</span></button>
           <button id="pathBtn" class="tog" title="이전 대형에서 온 자리(점선)와 이동 화살표 보기">↗ 이동<span class="lg"> 표시</span></button>
           <button id="fxBtn" class="tog" title="리본 안무 · 하늘 문 · 나비 · 행진 효과를 한꺼번에 켜기·끄기 (점프·리본 별은 그대로)">✨<span class="lg"> 효과</span></button>
-          <select id="focusSel" aria-label="한 사람 동선만 보기"></select>
+          <select id="focusSel" aria-label="한 사람 동선만 보기" title="내 이름을 고르면 내 동선만 크게 보여요 (이 브라우저에 기억)"></select>
           <button id="sideBtn" class="tog" title="대형 편집·인원·설정 패널 보이기/숨기기 (E, 숨기면 무대가 넓어져요)">✎<span class="lg" id="sideLbl"> 편집 숨기기</span></button>
+          <button id="moreBtn" class="tog" title="여러 명 고르기 · 편집 · 보는 방향" aria-label="도구 더 보기">⋯</button>
           <button id="fullBtn" class="tog" title="무대만 화면 가득 크게 보기">⛶<span class="lg"> 크게</span></button>
           <div class="seg" id="viewSeg" role="group" aria-label="보는 방향">
             <button data-mirror="0" title="객석에서 무대를 보는 방향">객석에서</button><button data-mirror="1" title="무대 위에서 객석을 보는 방향 (앞뒤·좌우 반대)">무대에서</button>
@@ -515,6 +536,7 @@ try { const t = localStorage.getItem('site-theme'); if (t === 'light' || t === '
           <div class="memoNow" id="memoNow"></div>
         </div>
         <div class="fsBar" id="fsBar">
+          <div class="fsSeek" id="fsSeek" aria-label="재생 위치"><i id="fsSeekFill"></i></div>
           <div class="fsInfo"><b id="fsScene"></b><span class="time" id="fsTime"></span></div>
           <div class="fsRight">
             <div class="fsCtl">
@@ -763,12 +785,13 @@ const clone = o => JSON.parse(JSON.stringify(o));
 let song = SONGS[0], sd = null, common = null, DEF = [];
 let picked = new Set(), pickMode = false, lastTap = {}; // 여러 명 같이 옮기기 · 두 번 누르기 확인
 let sel = 0, focus = '', loopOn = false, loopIdx = 0, holdT = 0, drag = null, dEls = [];
-// 처음 열면 효과 끔(fx) · 편집 패널 닫힘(side). 바꾸면 그 브라우저에 기억
-const view = { mirror: false, names: true, paths: true, snap: true, nearest: true, side: false, fx: false, chips: true, viewV: 2 }; // chips: 대형 목록 펼침 // fx: 무대 효과 한꺼번에 켜기·끄기
+// 처음 열면 효과 끔(fx) · 편집 패널 닫힘(side) · 대형 목록 접힘(chips). 바꾸면 그 브라우저에 기억
+const view = { mirror: false, names: true, paths: true, snap: true, nearest: true, side: false, fx: false, chips: false, viewV: 3 }; // chips: 대형 목록 펼침 // fx: 무대 효과 한꺼번에 켜기·끄기
 try {
   const v = JSON.parse(localStorage.getItem('dance-view')) || {};
-  if ((v.viewV || 0) < 2) { delete v.side; delete v.fx; } // 예전에 저장된 보기 설정도 한 번은 새 기본값(효과 끔·편집 닫힘)으로
-  Object.assign(view, v, { viewV: 2 });
+  if ((v.viewV || 0) < 2) delete v.side; // 예전에 저장된 보기 설정도 한 번은 새 기본값으로 (편집 닫힘)
+  if ((v.viewV || 0) < 3) { delete v.fx; delete v.chips; } // (효과 끔 · 대형 목록 접힘)
+  Object.assign(view, v, { viewV: 3 });
 } catch {}
 const saveView = () => { try { localStorage.setItem('dance-view', JSON.stringify(view)); } catch {} };
 
@@ -1293,10 +1316,11 @@ function nudge(key, fine) {
   markEdit(); renderOverlay(); refreshOverview();
 }
 $('#multiBtn').onclick = () => { pickMode = !pickMode; setSwitch('#multiBtn', pickMode); svg.classList.toggle('picking', pickMode); if (!pickMode) setPicked([]); };
-function setFocus(id) { focus = id; $('#focusSel').value = id; renderOverlay(); }
+function setFocus(id) { focus = id; $('#focusSel').value = id; try { localStorage.setItem('dance-focus', id); } catch {} renderOverlay(); } // 고른 사람은 그 브라우저에 기억
 function renderFocusSel() {
   const s = $('#focusSel'); s.innerHTML = '<option value="">모두 보기</option>';
   common.members.forEach((m, i) => { const o = document.createElement('option'); o.value = m.id; o.textContent = `${i + 1}번${m.name ? ' ' + m.name : ''} 동선만`; s.appendChild(o); });
+  if (!focus) try { focus = localStorage.getItem('dance-focus') || ''; } catch {}
   if (!common.members.some(m => m.id === focus)) focus = '';
   s.value = focus;
 }
@@ -1793,7 +1817,7 @@ function chipsFoldLabel() {
   const b = $('#chipsFold'); if (!b || !sd) return;
   $('.chipsRow').classList.toggle('folded', !view.chips);
   b.setAttribute('aria-expanded', view.chips);
-  b.textContent = view.chips ? '▴ 접기' : `▾ 대형 펴기 · ${sel + 1}/${sd.scenes.length} ${sd.scenes[sel].name}`;
+  b.textContent = view.chips ? '▴ 접기' : `▾ 대형 · ${sel + 1}/${sd.scenes.length} ${sd.scenes[sel].name}`;
 }
 $('#chipsFold').onclick = () => { view.chips = !view.chips; saveView(); chipsFoldLabel(); };
 $('#fxBtn').onclick = () => { view.fx = !view.fx; saveView(); renderSettings(); renderOverlay(); };
@@ -2191,6 +2215,7 @@ function tick(now) {
   $('#clockCur').textContent = fmt(t); $('#clockTot').textContent = fmt(dur());
   if (full) $('#fsTime').textContent = fmt(t) + ' / ' + fmt(dur());
   const p = (t / dur() * 100) + '%'; $('#barFill').style.width = p; $('#barHead').style.left = p;
+  if (full) $('#fsSeekFill').style.width = p;
   updateLyric(t);
   requestAnimationFrame(tick);
 }
@@ -2199,16 +2224,32 @@ function tick(now) {
 // ===== 무대 크게 보기 =====
 // 무대만 화면 가득. 되면 브라우저 전체화면도 같이 (iPhone 사파리는 안 돼서 화면 안에서만 가득)
 let full = false;
-function setFull(on) {
+function setFull(on, quiet) { // quiet: 브라우저 전체화면은 요청 안 함 (자동으로 들어갈 때)
   full = on; document.body.classList.toggle('full', on);
   try {
-    if (on && document.documentElement.requestFullscreen && !document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+    if (on && !quiet && document.documentElement.requestFullscreen && !document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
     if (!on && document.fullscreenElement) document.exitFullscreen().catch(() => {});
   } catch {}
 }
 document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && full) setFull(false); }); // 뒤로가기·Esc로 나간 경우
 $('#fullBtn').onclick = () => setFull(true);
-$('#fsClose').onclick = () => setFull(false);
+$('#fsClose').onclick = () => { autoFull = false; setFull(false); };
+$('#moreBtn').onclick = () => { const on = !document.body.classList.contains('moreTools'); document.body.classList.toggle('moreTools', on); setSwitch('#moreBtn', on); };
+// 무대 모드 진행 막대: 누르거나 끌어서 이동
+{
+  const sk = $('#fsSeek');
+  const go = ev => { const r = sk.getBoundingClientRect(); seek(Math.min(Math.max((ev.clientX - r.left) / r.width, 0), 1) * dur()); };
+  sk.addEventListener('pointerdown', ev => { sk.setPointerCapture(ev.pointerId); go(ev); });
+  sk.addEventListener('pointermove', ev => { if (sk.hasPointerCapture(ev.pointerId)) go(ev); });
+}
+// 휴대폰을 가로로 돌리면 무대 모드로, 다시 세로로 돌리면 원래대로 (직접 닫으면 다음에 돌릴 때까지 그대로)
+const phoneLand = matchMedia('(orientation: landscape) and (max-height: 500px)');
+let autoFull = false;
+function autoFullCheck() {
+  if (phoneLand.matches && !full) { autoFull = true; setFull(true, true); }
+  else if (!phoneLand.matches && autoFull) { autoFull = false; setFull(false); }
+}
+phoneLand.addEventListener('change', autoFullCheck);
 $('#fsPlay').onclick = togglePlay;
 $('#fsPrev').onclick = () => selectScene(sel - 1, true);
 $('#fsNext').onclick = () => selectScene(sel + 1, true);
@@ -2357,6 +2398,9 @@ let startSong = hashSong();
 if (!SONGS.some(s => s.id === startSong)) try { startSong = localStorage.getItem('dance-song'); } catch {}
 selectSong(startSong);
 requestAnimationFrame(tick);
+autoFullCheck(); // 처음부터 가로 휴대폰이면 무대 모드로
+chipsFoldLabel(); // 대형 목록 접힘 상태 처음부터
+renderOverlay(); // 기억해 둔 내 동선도 처음부터
 
 // ☀/🌙 화면 모드 전환 (두 페이지가 같은 설정을 씀). 이 스크립트 안에 둬야 HTML 저장 때 빠지지 않음
 (() => {
